@@ -58,19 +58,15 @@ function generateRandomGrid(): string[][] {
   );
 }
 
-export default function Page() {
+export default function SecondPage() {
   const [w, setW] = useState('');
   const [grid, setGrid] = useState<string[][]>([]);
   const [selectedTiles, setSelectedTiles] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isValid, setIsValid] = useState<boolean | null>(null);
   const [currentScore, setCurrentScore] = useState(0);
-  const [player1Score, setPlayer1Score] = useState(0);
-  const [player2Score, setPlayer2Score] = useState(0);
-  const [currentPlayer, setCurrentPlayer] = useState<1 | 2>(1);
-  const [turnNumber, setTurnNumber] = useState(1);
+  const [totalScore, setTotalScore] = useState(0);
   const [submittedWords, setSubmittedWords] = useState<string[]>([]);
-  const [usedTiles, setUsedTiles] = useState<Set<string>>(new Set());
 
   // Generate grid only on client side to avoid hydration mismatch
   useEffect(() => {
@@ -89,27 +85,59 @@ export default function Page() {
     }
   }, [w]);
 
-  // Submit word and add to current player's score
-  const handleSubmit = () => {
-    if (isValid && w.length >= 3) {
-      // Add score to current player
-      if (currentPlayer === 1) {
-        setPlayer1Score(player1Score + currentScore);
-      } else {
-        setPlayer2Score(player2Score + currentScore);
-      }
+  // Drop tiles and refill grid
+  const dropTiles = (tilesToRemove: string[]) => {
+    const newGrid = grid.map(row => [...row]);
 
+    // Get columns that need to be processed
+    const columnsToProcess = new Set<number>();
+    tilesToRemove.forEach(tile => {
+      const [, col] = tile.split('-').map(Number);
+      columnsToProcess.add(col);
+    });
+
+    // For each column, drop tiles and add new ones at the top
+    columnsToProcess.forEach(col => {
+      // Get all tiles to remove in this column
+      const rowsToRemove = tilesToRemove
+        .filter(tile => {
+          const [, c] = tile.split('-').map(Number);
+          return c === col;
+        })
+        .map(tile => {
+          const [r] = tile.split('-').map(Number);
+          return r;
+        })
+        .sort((a, b) => a - b); // Sort from top to bottom
+
+      // Remove tiles and shift down
+      rowsToRemove.forEach(() => {
+        // Remove tiles at specified positions and shift everything down
+        for (let row = 7; row >= 0; row--) {
+          if (rowsToRemove.includes(row)) {
+            // Shift all tiles above this position down
+            for (let r = row; r > 0; r--) {
+              newGrid[r][col] = newGrid[r - 1][col];
+            }
+            // Add new tile at top
+            newGrid[0][col] = getRandomLetter();
+          }
+        }
+      });
+    });
+
+    setGrid(newGrid);
+  };
+
+  // Submit word and add to total score
+  const handleSubmit = () => {
+    if (isValid && w.length >= 3 && !submittedWords.includes(w.toUpperCase())) {
+      setTotalScore(totalScore + currentScore);
       setSubmittedWords([...submittedWords, w.toUpperCase()]);
-      // Mark tiles as used
-      setUsedTiles(new Set([...usedTiles, ...selectedTiles]));
+      // Drop tiles and refill
+      dropTiles(selectedTiles);
       setW('');
       setSelectedTiles([]);
-
-      // Switch to next player
-      setCurrentPlayer(currentPlayer === 1 ? 2 : 1);
-      if (currentPlayer === 2) {
-        setTurnNumber(turnNumber + 1);
-      }
     }
   };
 
@@ -124,9 +152,6 @@ export default function Page() {
 
   const handleTileClick = (letter: string, rowIndex: number, colIndex: number) => {
     const tileKey = `${rowIndex}-${colIndex}`;
-
-    // If tile is already used (blacked out), ignore
-    if (usedTiles.has(tileKey)) return;
 
     // If already selected, ignore
     if (selectedTiles.includes(tileKey)) return;
@@ -154,38 +179,19 @@ export default function Page() {
   };
 
   return (
-    <div className="relative">
+    <div>
       <div className="absolute top-4 right-4">
         <Link
-          href="/second"
+          href="/"
           className="px-6 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 font-semibold"
         >
-          Game 2
+          Back to Game 1
         </Link>
       </div>
 
-      {/* Player 1 Score - Left Side */}
-      <div className="absolute top-4 left-4 p-4 bg-blue-100 rounded-lg shadow">
-        <p className={`text-lg font-bold ${currentPlayer === 1 ? 'text-blue-600' : 'text-gray-600'}`}>
-          Player 1 {currentPlayer === 1 && '⭐'}
-        </p>
-        <p className="text-2xl font-bold">{player1Score}</p>
-      </div>
-
-      {/* Player 2 Score - Right Side (below game mode button) */}
-      <div className="absolute top-20 right-4 p-4 bg-red-100 rounded-lg shadow">
-        <p className={`text-lg font-bold ${currentPlayer === 2 ? 'text-red-600' : 'text-gray-600'}`}>
-          Player 2 {currentPlayer === 2 && '⭐'}
-        </p>
-        <p className="text-2xl font-bold">{player2Score}</p>
-      </div>
-
-      <div className="text-center p-4 pt-20">
+      <div className="text-center p-4">
         <div className="mb-4">
-          <p className="text-xl font-semibold">Turn: {turnNumber}</p>
-          <p className="text-2xl font-bold mt-2">
-            {currentPlayer === 1 ? "Player 1's Turn" : "Player 2's Turn"}
-          </p>
+          <p className="text-2xl font-bold">Total Score: {totalScore}</p>
         </div>
 
         <p className="text-xl">
@@ -203,7 +209,7 @@ export default function Page() {
         <div className="flex gap-2 justify-center mt-3">
           <button
             onClick={handleSubmit}
-            disabled={!isValid || w.length < 3}
+            disabled={!isValid || w.length < 3 || submittedWords.includes(w.toUpperCase())}
             className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold"
           >
             Submit Word
@@ -239,23 +245,19 @@ export default function Page() {
             row.map((cell, colIndex) => {
               const tileKey = `${rowIndex}-${colIndex}`;
               const isSelected = selectedTiles.includes(tileKey);
-              const isUsed = usedTiles.has(tileKey);
 
               return (
                 <div
                   key={tileKey}
                   onMouseDown={() => handleMouseDown(cell, rowIndex, colIndex)}
                   onMouseEnter={() => handleMouseEnter(cell, rowIndex, colIndex)}
-                  className={`border aspect-square flex flex-col items-center justify-center relative ${
-                    isUsed
-                      ? 'bg-gray-800 text-gray-800 cursor-not-allowed'
-                      : isSelected
-                      ? 'bg-blue-500 text-white cursor-pointer'
-                      : 'hover:bg-blue-100 active:bg-blue-200 cursor-pointer'
-                  }`}
+                  className={`border aspect-square flex flex-col items-center justify-center relative cursor-pointer transition-all duration-500 ${isSelected
+                    ? 'bg-blue-500 text-white'
+                    : 'hover:bg-blue-100 active:bg-blue-200'
+                    }`}
                 >
                   <span className="text-2xl font-bold">{cell}</span>
-                  <span className={`text-xs absolute bottom-1 right-1 ${isUsed ? 'text-gray-800' : ''}`}>
+                  <span className="text-xs absolute bottom-1 right-1">
                     {letterPoints[cell]}
                   </span>
                 </div>
