@@ -375,7 +375,7 @@ export default function WordCrossPage() {
     setDeck(newDeck);
   };
 
-  // Drag and drop handlers
+  // Drag and drop handlers (desktop)
   const handleDragStart = (type: 'deck' | 'grid' | 'bench', deckIndex?: number, row?: number, col?: number, benchIndex?: number) => {
     if (type === 'deck' && deckIndex !== undefined) {
       setDraggedFrom({ type: 'deck', deckIndex });
@@ -413,6 +413,47 @@ export default function WordCrossPage() {
     if (draggedFrom.type === 'deck' && draggedFrom.deckIndex !== undefined) {
       // Dragging from deck to bench
       moveDeckToBench(draggedFrom.deckIndex, targetIndex);
+    }
+
+    setDraggedFrom(null);
+  };
+
+  // Touch handlers (mobile)
+  const handleTouchStart = (type: 'deck' | 'grid' | 'bench', deckIndex?: number, row?: number, col?: number, benchIndex?: number) => {
+    if (type === 'deck' && deckIndex !== undefined && !usedDeckIndices.has(deckIndex)) {
+      setDraggedFrom({ type: 'deck', deckIndex });
+    } else if (type === 'grid' && row !== undefined && col !== undefined && grid[row][col] !== '') {
+      setDraggedFrom({ type: 'grid', gridPos: { row, col } });
+    } else if (type === 'bench' && benchIndex !== undefined && bench[benchIndex] !== '') {
+      setDraggedFrom({ type: 'bench', benchIndex });
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!draggedFrom) return;
+
+    const touch = e.changedTouches[0];
+    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+
+    if (element) {
+      // Check for grid cell
+      const gridRow = element.getAttribute('data-grid-row');
+      const gridCol = element.getAttribute('data-grid-col');
+      if (gridRow !== null && gridCol !== null) {
+        handleDropOnGrid(parseInt(gridRow), parseInt(gridCol));
+        return;
+      }
+
+      // Check for bench slot
+      const benchIndex = element.getAttribute('data-bench-index');
+      if (benchIndex !== null) {
+        handleDropOnBench(parseInt(benchIndex));
+        return;
+      }
     }
 
     setDraggedFrom(null);
@@ -491,10 +532,14 @@ export default function WordCrossPage() {
               {bench.map((letter, index) => (
                 <div
                   key={index}
+                  data-bench-index={index}
                   draggable={letter !== ''}
                   onDragStart={() => handleDragStart('bench', undefined, undefined, undefined, index)}
                   onDragOver={handleDragOver}
                   onDrop={() => handleDropOnBench(index)}
+                  onTouchStart={() => handleTouchStart('bench', undefined, undefined, undefined, index)}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
                   onClick={() => {
                     // Click to remove
                     if (letter !== '') {
@@ -526,10 +571,15 @@ export default function WordCrossPage() {
                 row.map((letter, colIndex) => (
                   <div
                     key={`${rowIndex}-${colIndex}`}
+                    data-grid-row={rowIndex}
+                    data-grid-col={colIndex}
                     draggable={letter !== ''}
                     onDragStart={() => handleDragStart('grid', undefined, rowIndex, colIndex)}
                     onDragOver={handleDragOver}
                     onDrop={() => handleDropOnGrid(rowIndex, colIndex)}
+                    onTouchStart={() => handleTouchStart('grid', undefined, rowIndex, colIndex)}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
                     onClick={() => {
                       // Click to remove
                       if (letter !== '') {
@@ -566,6 +616,9 @@ export default function WordCrossPage() {
                   key={index}
                   draggable={!isUsed}
                   onDragStart={() => handleDragStart('deck', index)}
+                  onTouchStart={() => handleTouchStart('deck', index)}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
                   className={`w-16 h-24 rounded-lg shadow-lg flex flex-col items-center justify-center relative border-2 transition-all ${
                     isUsed
                       ? 'bg-gray-300 border-gray-400 opacity-50 cursor-not-allowed'

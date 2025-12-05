@@ -164,7 +164,7 @@ export default function DeckPage() {
     setDeck(newDeck);
   };
 
-  // Drag and drop handlers
+  // Drag and drop handlers (desktop)
   const handleDragStart = (type: 'deck' | 'wordBar', index: number) => {
     setDraggedFrom({ type, index });
   };
@@ -205,6 +205,32 @@ export default function DeckPage() {
     } else if (draggedFrom.type === 'wordBar') {
       // Dragging within word bar
       shiftWordBarLetter(draggedFrom.index, targetIndex);
+    }
+
+    setDraggedFrom(null);
+  };
+
+  // Touch handlers (mobile)
+  const handleTouchStart = (type: 'deck' | 'wordBar', index: number) => {
+    if (type === 'deck' && usedDeckIndices.has(index)) return;
+    setDraggedFrom({ type, index });
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!draggedFrom) return;
+
+    const touch = e.changedTouches[0];
+    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+
+    if (element) {
+      const wordBarIndex = element.getAttribute('data-wordbar-index');
+      if (wordBarIndex !== null) {
+        handleDropOnWordBar(parseInt(wordBarIndex));
+      }
     }
 
     setDraggedFrom(null);
@@ -264,10 +290,14 @@ export default function DeckPage() {
             {wordBar.map((letter, index) => (
               <div
                 key={index}
+                data-wordbar-index={index}
                 draggable={letter !== ''}
                 onDragStart={() => handleDragStart('wordBar', index)}
                 onDragOver={handleDragOver}
                 onDrop={() => handleDropOnWordBar(index)}
+                onTouchStart={() => handleTouchStart('wordBar', index)}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
                 onClick={() => {
                   // Right-click or click to remove
                   if (letter !== '') {
@@ -302,6 +332,9 @@ export default function DeckPage() {
                   key={index}
                   draggable={!isUsed}
                   onDragStart={() => handleDragStart('deck', index)}
+                  onTouchStart={() => handleTouchStart('deck', index)}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
                   onClick={() => moveDeckToWordBar(index)}
                   className={`w-16 h-24 rounded-lg shadow-lg flex flex-col items-center justify-center relative border-2 transition-all ${
                     isUsed
