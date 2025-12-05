@@ -11,7 +11,7 @@ export default function HomePage() {
           Choose your game mode and start playing!
         </p>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-8 mb-8">
           {/* Game 1 - Blackout */}
           <Link href="/games/blackout">
             <div className="bg-white rounded-2xl p-8 shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all cursor-pointer">
@@ -74,6 +74,74 @@ export default function HomePage() {
               </ul>
               <div className="bg-green-500 text-white text-center py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors">
                 Play AI Battle
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8 mb-8">
+          {/* Game 4 - Deck */}
+          <Link href="/games/deck">
+            <div className="bg-white rounded-2xl p-8 shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all cursor-pointer">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-3xl font-bold text-gray-800">Deck</h2>
+                <div className="text-4xl">🃏</div>
+              </div>
+              <p className="text-gray-600 mb-4">
+                Build words from your hand of 10 letter cards!
+              </p>
+              <ul className="space-y-2 text-sm text-gray-700 mb-6">
+                <li>✓ 10-card deck</li>
+                <li>✓ Drag and drop cards</li>
+                <li>✓ Word bar interface</li>
+                <li>✓ Refresh deck option</li>
+              </ul>
+              <div className="bg-purple-500 text-white text-center py-3 rounded-lg font-semibold hover:bg-purple-600 transition-colors">
+                Play Deck
+              </div>
+            </div>
+          </Link>
+
+          {/* Game 5 - Word Cross */}
+          <Link href="/games/wordcross">
+            <div className="bg-white rounded-2xl p-8 shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all cursor-pointer">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-3xl font-bold text-gray-800">Word Cross</h2>
+                <div className="text-4xl">📝</div>
+              </div>
+              <p className="text-gray-600 mb-4">
+                Place letters on a 5x5 grid to create crossword-style words!
+              </p>
+              <ul className="space-y-2 text-sm text-gray-700 mb-6">
+                <li>✓ 5x5 grid gameplay</li>
+                <li>✓ 25-card deck</li>
+                <li>✓ 10-tile storage bench</li>
+                <li>✓ Crossword validation</li>
+              </ul>
+              <div className="bg-orange-500 text-white text-center py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors">
+                Play Word Cross
+              </div>
+            </div>
+          </Link>
+
+          {/* Game 6 - Librarian's Tower */}
+          <Link href="/games/librarianstower">
+            <div className="bg-white rounded-2xl p-8 shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all cursor-pointer">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-3xl font-bold text-gray-800">Librarian's Tower</h2>
+                <div className="text-4xl">📚</div>
+              </div>
+              <p className="text-gray-600 mb-4">
+                Balance mind and muscle! Fill both bars within 3 words to win.
+              </p>
+              <ul className="space-y-2 text-sm text-gray-700 mb-6">
+                <li>✓ Mind & Muscle bars</li>
+                <li>✓ 3 word limit</li>
+                <li>✓ Strategic gameplay</li>
+                <li>✓ Drag and drop cards</li>
+              </ul>
+              <div className="bg-teal-500 text-white text-center py-3 rounded-lg font-semibold hover:bg-teal-600 transition-colors">
+                Play Librarian's Tower
               </div>
             </div>
           </Link>

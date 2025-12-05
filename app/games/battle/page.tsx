@@ -2,33 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from 'next/link';
-import words10 from 'wordlist-english/english-words-10.json';
-import words20 from 'wordlist-english/english-words-20.json';
-import words35 from 'wordlist-english/english-words-35.json';
-import words40 from 'wordlist-english/english-words-40.json';
-import words50 from 'wordlist-english/english-words-50.json';
-import words55 from 'wordlist-english/english-words-55.json';
-
-// Combine word lists - 10 (most common) through 55 for broader vocabulary
-const allWords = [...words10, ...words20, ...words35, ...words40, ...words50, ...words55];
-
-// Create a Set for fast word lookup - O(1)
-const validWords = new Set(allWords.map(w => w.toLowerCase()));
-
-// Scrabble letter point values
-const letterPoints: { [key: string]: number } = {
-  'A': 1, 'B': 3, 'C': 3, 'D': 2, 'E': 1, 'F': 4, 'G': 2, 'H': 4,
-  'I': 1, 'J': 8, 'K': 5, 'L': 1, 'M': 3, 'N': 1, 'O': 1, 'P': 3,
-  'Q': 10, 'R': 1, 'S': 1, 'T': 1, 'U': 1, 'V': 4, 'W': 4, 'X': 8,
-  'Y': 4, 'Z': 10
-};
-
-// Calculate score for a word
-function calculateScore(word: string): number {
-  return word.toUpperCase().split('').reduce((score, letter) => {
-    return score + (letterPoints[letter] || 0);
-  }, 0);
-}
+import GameNav from '@/app/components/GameNav';
+import { calculateScore, letterPoints } from '@/app/components/wordValidation';
+import { useWordValidation } from '@/app/components/useWordValidation';
 
 // Letter frequency groups based on English usage
 const commonLetters = ['E', 'T', 'A', 'O', 'I', 'N', 'S', 'H', 'R'];  // ~60% chance
@@ -63,8 +39,6 @@ export default function SecondPage() {
   const [grid, setGrid] = useState<string[][]>([]);
   const [selectedTiles, setSelectedTiles] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
-  const [isValid, setIsValid] = useState<boolean | null>(null);
-  const [currentDamage, setCurrentDamage] = useState(0);
   const [player1Health, setPlayer1Health] = useState(20);
   const [player2Health, setPlayer2Health] = useState(20);
   const [currentPlayer, setCurrentPlayer] = useState<1 | 2>(1);
@@ -72,6 +46,9 @@ export default function SecondPage() {
   const [submittedWords, setSubmittedWords] = useState<string[]>([]);
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState<1 | 2 | null>(null);
+
+  // Use the custom validation hook
+  const { isValid, score: currentDamage } = useWordValidation(w);
 
   // Generate grid only on client side to avoid hydration mismatch
   useEffect(() => {
@@ -102,18 +79,6 @@ export default function SecondPage() {
     setWinner(null);
     setGrid(generateRandomGrid());
   };
-
-  // Validate word and calculate damage whenever it changes
-  useEffect(() => {
-    if (w.length > 0) {
-      const valid = validWords.has(w.toLowerCase());
-      setIsValid(valid);
-      setCurrentDamage(calculateScore(w));
-    } else {
-      setIsValid(null);
-      setCurrentDamage(0);
-    }
-  }, [w]);
 
   // Drop tiles and refill grid
   const dropTiles = (tilesToRemove: string[]) => {
@@ -250,27 +215,7 @@ export default function SecondPage() {
         </div>
       )}
 
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
-        <select
-          onChange={(e) => {
-            const value = e.target.value;
-            if (value === 'home') {
-              window.location.href = '/';
-            } else if (value === 'blackout') {
-              window.location.href = '/games/blackout';
-            } else if (value === 'singleplayerbattle') {
-              window.location.href = '/games/singleplayerbattle';
-            }
-          }}
-          className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 font-semibold cursor-pointer"
-          defaultValue="battle"
-        >
-          <option value="home">🏠 Home</option>
-          <option value="blackout">Blackout Mode</option>
-          <option value="battle">Battle Mode</option>
-          <option value="singleplayerbattle">AI Battle</option>
-        </select>
-      </div>
+      <GameNav currentGame="battle" />
 
       <div className="text-center p-4 pt-20">
         <div className="mb-4">
