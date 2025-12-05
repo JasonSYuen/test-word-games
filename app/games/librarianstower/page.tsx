@@ -233,7 +233,7 @@ export default function LibrariansTowerPage() {
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    e.preventDefault();
+    // Note: preventDefault is handled via touch-action CSS instead
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
@@ -356,7 +356,7 @@ export default function LibrariansTowerPage() {
                     removeFromWordBar(index);
                   }
                 }}
-                className={`w-14 h-14 rounded border-2 flex flex-col items-center justify-center relative ${
+                className={`w-14 h-14 rounded border-2 flex flex-col items-center justify-center relative touch-none ${
                   letter === ''
                     ? 'bg-gray-100 border-gray-400 border-dashed'
                     : 'bg-white border-blue-400 cursor-move hover:shadow-lg hover:scale-105 transition-all'
@@ -388,7 +388,7 @@ export default function LibrariansTowerPage() {
                   onTouchMove={handleTouchMove}
                   onTouchEnd={handleTouchEnd}
                   onClick={() => moveDeckToWordBar(index)}
-                  className={`w-16 h-24 rounded-lg shadow-lg flex flex-col items-center justify-center relative border-2 transition-all ${
+                  className={`w-16 h-24 rounded-lg shadow-lg flex flex-col items-center justify-center relative border-2 transition-all touch-none ${
                     isUsed
                       ? 'bg-gray-300 border-gray-400 opacity-50 cursor-not-allowed'
                       : 'bg-white border-gray-300 cursor-move hover:shadow-xl hover:scale-105'
