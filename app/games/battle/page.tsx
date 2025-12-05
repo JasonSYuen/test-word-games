@@ -64,24 +64,54 @@ export default function SecondPage() {
   const [selectedTiles, setSelectedTiles] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isValid, setIsValid] = useState<boolean | null>(null);
-  const [currentScore, setCurrentScore] = useState(0);
-  const [totalScore, setTotalScore] = useState(0);
+  const [currentDamage, setCurrentDamage] = useState(0);
+  const [player1Health, setPlayer1Health] = useState(20);
+  const [player2Health, setPlayer2Health] = useState(20);
+  const [currentPlayer, setCurrentPlayer] = useState<1 | 2>(1);
+  const [turnNumber, setTurnNumber] = useState(1);
   const [submittedWords, setSubmittedWords] = useState<string[]>([]);
+  const [gameOver, setGameOver] = useState(false);
+  const [winner, setWinner] = useState<1 | 2 | null>(null);
 
   // Generate grid only on client side to avoid hydration mismatch
   useEffect(() => {
     setGrid(generateRandomGrid());
   }, []);
 
-  // Validate word and calculate score whenever it changes
+  // Check for game over
+  useEffect(() => {
+    if (player1Health <= 0) {
+      setGameOver(true);
+      setWinner(2);
+    } else if (player2Health <= 0) {
+      setGameOver(true);
+      setWinner(1);
+    }
+  }, [player1Health, player2Health]);
+
+  // Restart game
+  const restartGame = () => {
+    setPlayer1Health(20);
+    setPlayer2Health(20);
+    setCurrentPlayer(1);
+    setTurnNumber(1);
+    setW('');
+    setSelectedTiles([]);
+    setSubmittedWords([]);
+    setGameOver(false);
+    setWinner(null);
+    setGrid(generateRandomGrid());
+  };
+
+  // Validate word and calculate damage whenever it changes
   useEffect(() => {
     if (w.length > 0) {
       const valid = validWords.has(w.toLowerCase());
       setIsValid(valid);
-      setCurrentScore(calculateScore(w));
+      setCurrentDamage(calculateScore(w));
     } else {
       setIsValid(null);
-      setCurrentScore(0);
+      setCurrentDamage(0);
     }
   }, [w]);
 
@@ -129,15 +159,27 @@ export default function SecondPage() {
     setGrid(newGrid);
   };
 
-  // Submit word and add to total score
+  // Submit word and deal damage to opponent
   const handleSubmit = () => {
-    if (isValid && w.length >= 3 && !submittedWords.includes(w.toUpperCase())) {
-      setTotalScore(totalScore + currentScore);
+    if (isValid && w.length >= 3) {
+      // Deal damage to opponent
+      if (currentPlayer === 1) {
+        setPlayer2Health(Math.max(0, player2Health - currentDamage));
+      } else {
+        setPlayer1Health(Math.max(0, player1Health - currentDamage));
+      }
+
       setSubmittedWords([...submittedWords, w.toUpperCase()]);
       // Drop tiles and refill
       dropTiles(selectedTiles);
       setW('');
       setSelectedTiles([]);
+
+      // Switch to next player
+      setCurrentPlayer(currentPlayer === 1 ? 2 : 1);
+      if (currentPlayer === 2) {
+        setTurnNumber(turnNumber + 1);
+      }
     }
   };
 
@@ -180,18 +222,62 @@ export default function SecondPage() {
 
   return (
     <div>
-      <div className="absolute top-4 right-4">
-        <Link
-          href="/"
-          className="px-6 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 font-semibold"
+      {/* Game Over Modal */}
+      {gameOver && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 max-w-md text-center shadow-2xl">
+            <h2 className="text-4xl font-bold mb-4">Game Over!</h2>
+            <p className="text-2xl mb-6">
+              <span className={winner === 1 ? 'text-blue-600' : 'text-red-600'}>
+                Player {winner} Wins!
+              </span>
+            </p>
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={restartGame}
+                className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-semibold text-lg"
+              >
+                Restart Game
+              </button>
+              <Link
+                href="/"
+                className="px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 font-semibold text-lg"
+              >
+                Home
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
+        <select
+          onChange={(e) => {
+            const value = e.target.value;
+            if (value === 'home') {
+              window.location.href = '/';
+            } else if (value === 'blackout') {
+              window.location.href = '/games/blackout';
+            } else if (value === 'singleplayerbattle') {
+              window.location.href = '/games/singleplayerbattle';
+            }
+          }}
+          className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 font-semibold cursor-pointer"
+          defaultValue="battle"
         >
-          Back to Game 1
-        </Link>
+          <option value="home">🏠 Home</option>
+          <option value="blackout">Blackout Mode</option>
+          <option value="battle">Battle Mode</option>
+          <option value="singleplayerbattle">AI Battle</option>
+        </select>
       </div>
 
-      <div className="text-center p-4">
+      <div className="text-center p-4 pt-20">
         <div className="mb-4">
-          <p className="text-2xl font-bold">Total Score: {totalScore}</p>
+          <p className="text-xl font-semibold">Turn: {turnNumber}</p>
+          <p className="text-2xl font-bold mt-2">
+            {currentPlayer === 1 ? "Player 1's Turn" : "Player 2's Turn"}
+          </p>
         </div>
 
         <p className="text-xl">
@@ -203,25 +289,32 @@ export default function SecondPage() {
           )}
         </p>
         <p className="text-lg font-semibold mt-2">
-          Word Score: {currentScore} points
+          Damage: {currentDamage}
         </p>
 
         <div className="flex gap-2 justify-center mt-3">
           <button
             onClick={handleSubmit}
-            disabled={!isValid || w.length < 3 || submittedWords.includes(w.toUpperCase())}
+            disabled={!isValid || w.length < 3 || gameOver}
             className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold"
           >
-            Submit Word
+            Attack!
           </button>
           <button
             onClick={() => {
               setW('');
               setSelectedTiles([]);
             }}
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            disabled={gameOver}
+            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
             Clear
+          </button>
+          <button
+            onClick={restartGame}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 font-semibold"
+          >
+            Restart
           </button>
         </div>
 
@@ -239,7 +332,42 @@ export default function SecondPage() {
         )}
       </div>
 
-      <div className="flex items-center justify-center" onMouseUp={handleMouseUp}>
+      <div className="flex flex-col items-center justify-center gap-4" onMouseUp={handleMouseUp}>
+        {/* Player health bars above grid */}
+        <div className="flex gap-4 w-[500px] justify-between px-8">
+          {/* Player 1 - Blue */}
+          <div className="w-32">
+            <div className={`w-32 h-32 bg-blue-500 rounded-lg shadow-lg flex items-center justify-center ${
+              currentPlayer === 1 ? 'ring-4 ring-yellow-400' : ''
+            }`}>
+              <span className="text-white font-bold text-2xl">{player1Health}</span>
+            </div>
+            <div className="mt-2 w-full bg-gray-300 h-4 rounded-full overflow-hidden">
+              <div
+                className="bg-blue-600 h-full transition-all duration-300"
+                style={{ width: `${(player1Health / 20) * 100}%` }}
+              ></div>
+            </div>
+            <p className="text-center mt-1 font-semibold text-sm">Player 1</p>
+          </div>
+
+          {/* Player 2 - Red */}
+          <div className="w-32">
+            <div className={`w-32 h-32 bg-red-500 rounded-lg shadow-lg flex items-center justify-center ${
+              currentPlayer === 2 ? 'ring-4 ring-yellow-400' : ''
+            }`}>
+              <span className="text-white font-bold text-2xl">{player2Health}</span>
+            </div>
+            <div className="mt-2 w-full bg-gray-300 h-4 rounded-full overflow-hidden">
+              <div
+                className="bg-red-600 h-full transition-all duration-300"
+                style={{ width: `${(player2Health / 20) * 100}%` }}
+              ></div>
+            </div>
+            <p className="text-center mt-1 font-semibold text-sm">Player 2</p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-8 gap-2 p-1 w-[500px] select-none">
           {grid.map((row, rowIndex) =>
             row.map((cell, colIndex) => {
