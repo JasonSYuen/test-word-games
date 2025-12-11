@@ -1,7 +1,7 @@
 'use client'
 
 interface GameNavProps {
-  currentGame: 'blackout' | 'battle' | 'singleplayerbattle' | 'deck' | 'wordcross' | 'librarianstower';
+  currentGame: 'blackout' | 'blackoutv2' | 'battle' | 'singleplayerbattle' | 'deck' | 'wordcross' | 'librarianstower';
 }
 
 export default function GameNav({ currentGame }: GameNavProps) {
@@ -14,6 +14,8 @@ export default function GameNav({ currentGame }: GameNavProps) {
             window.location.href = '/';
           } else if (value === 'blackout') {
             window.location.href = '/games/blackout';
+          } else if (value === 'blackoutv2') {
+            window.location.href = '/games/blackoutv2';
           } else if (value === 'battle') {
             window.location.href = '/games/battle';
           } else if (value === 'singleplayerbattle') {
@@ -31,6 +33,7 @@ export default function GameNav({ currentGame }: GameNavProps) {
       >
         <option value="home">Home</option>
         <option value="blackout">Blackout Mode</option>
+        <option value="blackoutv2">Blackout V2</option>
         <option value="battle">Battle Mode</option>
         <option value="singleplayerbattle">AI Battle</option>
         <option value="deck">Deck Mode</option>

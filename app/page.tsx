@@ -34,6 +34,28 @@ export default function HomePage() {
             </div>
           </Link>
 
+          {/* Game 1.5 - Blackout V2 */}
+          <Link href="/games/blackoutv2">
+            <div className="bg-white rounded-2xl p-8 shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all cursor-pointer">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-3xl font-bold text-gray-800">Blackout V2</h2>
+                <div className="text-4xl">🎯✨</div>
+              </div>
+              <p className="text-gray-600 mb-4">
+                Enhanced version of Blackout with new features and improvements!
+              </p>
+              <ul className="space-y-2 text-sm text-gray-700 mb-6">
+                <li>✓ Turn-based gameplay</li>
+                <li>✓ Tiles black out when used</li>
+                <li>✓ New mechanics (coming soon)</li>
+                <li>✓ Highest score wins</li>
+              </ul>
+              <div className="bg-indigo-500 text-white text-center py-3 rounded-lg font-semibold hover:bg-indigo-600 transition-colors">
+                Play Blackout V2
+              </div>
+            </div>
+          </Link>
+
           {/* Game 2 - Battle */}
           <Link href="/games/battle">
             <div className="bg-white rounded-2xl p-8 shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all cursor-pointer">
