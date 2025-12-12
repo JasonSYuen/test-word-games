@@ -42,13 +42,15 @@ export default function HomePage() {
                 <div className="text-4xl">🎯✨</div>
               </div>
               <p className="text-gray-600 mb-4">
-                Enhanced version of Blackout with new features and improvements!
+                Strategic 2-player word battle on an 8x8 grid. 6 turns each to score the most points!
               </p>
               <ul className="space-y-2 text-sm text-gray-700 mb-6">
-                <li>✓ Turn-based gameplay</li>
-                <li>✓ Tiles black out when used</li>
-                <li>✓ New mechanics (coming soon)</li>
-                <li>✓ Highest score wins</li>
+                <li>✓ Snake turn order (P1, P2, P2, P1...)</li>
+                <li>✓ Select adjacent tiles to form words</li>
+                <li>✓ Length bonus: +1 point per letter</li>
+                <li>✓ 60-second turn timer with auto-pass</li>
+                <li>✓ Used tiles stay colored by player</li>
+                <li>✓ Game ends after 6 turns each</li>
               </ul>
               <div className="bg-indigo-500 text-white text-center py-3 rounded-lg font-semibold hover:bg-indigo-600 transition-colors">
                 Play Blackout V2
