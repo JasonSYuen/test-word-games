@@ -44,9 +44,15 @@ export default function BlackoutV2Page() {
   const [currentPlayer, setCurrentPlayer] = useState<1 | 2>(1);
   const [turnNumber, setTurnNumber] = useState(1);
   const [moveCount, setMoveCount] = useState(0); // Track total moves for snake order
-  const [submittedWords, setSubmittedWords] = useState<Array<{word: string, player: 1 | 2, tiles: string[]}>>([]);
+  const [submittedWords, setSubmittedWords] = useState<Array<{word: string, player: 1 | 2, tiles: string[], turnTime: number, isPassed?: boolean}>>([]);
   const [usedTiles, setUsedTiles] = useState<Set<string>>(new Set());
   const [tileOwners, setTileOwners] = useState<Map<string, 1 | 2>>(new Map()); // Track which player used each tile
+
+  // Timer state
+  const [turnStartTime, setTurnStartTime] = useState<number>(Date.now());
+  const [currentTurnTime, setCurrentTurnTime] = useState<number>(0);
+  const [player1TotalTime, setPlayer1TotalTime] = useState<number>(0);
+  const [player2TotalTime, setPlayer2TotalTime] = useState<number>(0);
 
   // Use the custom validation hook
   const { isValid, score: currentScore } = useWordValidation(w);
@@ -56,6 +62,20 @@ export default function BlackoutV2Page() {
     setGrid(generateRandomGrid());
   }, []);
 
+  // Update current turn time every 100ms
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTurnTime(Date.now() - turnStartTime);
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [turnStartTime]);
+
+  // Format time in seconds with one decimal place
+  const formatTime = (ms: number): string => {
+    return (ms / 1000).toFixed(1) + 's';
+  };
+
   // Submit word and add to current player's score
   const handleSubmit = () => {
     if (isValid) {
@@ -63,14 +83,19 @@ export default function BlackoutV2Page() {
       const lengthBonus = w.length;
       const totalScore = currentScore + lengthBonus;
 
-      // Add score to current player
+      // Calculate turn time
+      const turnTime = Date.now() - turnStartTime;
+
+      // Add score and time to current player
       if (currentPlayer === 1) {
         setPlayer1Score(player1Score + totalScore);
+        setPlayer1TotalTime(player1TotalTime + turnTime);
       } else {
         setPlayer2Score(player2Score + totalScore);
+        setPlayer2TotalTime(player2TotalTime + turnTime);
       }
 
-      setSubmittedWords([...submittedWords, { word: w.toUpperCase(), player: currentPlayer, tiles: [...selectedTiles] }]);
+      setSubmittedWords([...submittedWords, { word: w.toUpperCase(), player: currentPlayer, tiles: [...selectedTiles], turnTime }]);
       // Mark tiles as used and record which player used them
       setUsedTiles(new Set([...usedTiles, ...selectedTiles]));
       const newTileOwners = new Map(tileOwners);
@@ -103,11 +128,26 @@ export default function BlackoutV2Page() {
       if (currentPlayer === 2) {
         setTurnNumber(turnNumber + 1);
       }
+
+      // Reset timer for next turn
+      setTurnStartTime(Date.now());
+      setCurrentTurnTime(0);
     }
   };
 
   // Pass turn without playing a word
   const handlePassTurn = () => {
+    // Calculate turn time and add to player's total
+    const turnTime = Date.now() - turnStartTime;
+    if (currentPlayer === 1) {
+      setPlayer1TotalTime(player1TotalTime + turnTime);
+    } else {
+      setPlayer2TotalTime(player2TotalTime + turnTime);
+    }
+
+    // Add passed turn to records
+    setSubmittedWords([...submittedWords, { word: 'PASS', player: currentPlayer, tiles: [], turnTime, isPassed: true }]);
+
     setW('');
     setSelectedTiles([]);
 
@@ -126,6 +166,10 @@ export default function BlackoutV2Page() {
     if (currentPlayer === 2) {
       setTurnNumber(turnNumber + 1);
     }
+
+    // Reset timer for next turn
+    setTurnStartTime(Date.now());
+    setCurrentTurnTime(0);
   };
 
   // Check if two tiles are adjacent (within 8 surrounding tiles)
@@ -188,12 +232,20 @@ export default function BlackoutV2Page() {
             P1 {currentPlayer === 1 && '⭐'}
           </p>
           <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{player1Score}</p>
+          {currentPlayer === 1 && (
+            <p className="text-xs font-mono mt-1 text-gray-700 dark:text-gray-300">{formatTime(currentTurnTime)}</p>
+          )}
+          <p className="text-xs font-mono mt-1 text-gray-600 dark:text-gray-400">Total: {formatTime(player1TotalTime)}</p>
         </div>
         <div className="p-3 bg-red-100 dark:bg-red-900 rounded-lg shadow flex-1 ml-2">
           <p className={`text-sm font-bold ${currentPlayer === 2 ? 'text-red-600 dark:text-red-300' : 'text-gray-600 dark:text-gray-400'}`}>
             P2 {currentPlayer === 2 && '⭐'}
           </p>
           <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{player2Score}</p>
+          {currentPlayer === 2 && (
+            <p className="text-xs font-mono mt-1 text-gray-700 dark:text-gray-300">{formatTime(currentTurnTime)}</p>
+          )}
+          <p className="text-xs font-mono mt-1 text-gray-600 dark:text-gray-400">Total: {formatTime(player2TotalTime)}</p>
         </div>
       </div>
 
@@ -203,6 +255,10 @@ export default function BlackoutV2Page() {
           Player 1 {currentPlayer === 1 && '⭐'}
         </p>
         <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{player1Score}</p>
+        {currentPlayer === 1 && (
+          <p className="text-sm font-mono mt-1 text-gray-700 dark:text-gray-300">{formatTime(currentTurnTime)}</p>
+        )}
+        <p className="text-sm font-mono mt-1 text-gray-600 dark:text-gray-400">Total: {formatTime(player1TotalTime)}</p>
       </div>
 
       {/* Player 2 Score - Desktop: Right Side */}
@@ -211,6 +267,10 @@ export default function BlackoutV2Page() {
           Player 2 {currentPlayer === 2 && '⭐'}
         </p>
         <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{player2Score}</p>
+        {currentPlayer === 2 && (
+          <p className="text-sm font-mono mt-1 text-gray-700 dark:text-gray-300">{formatTime(currentTurnTime)}</p>
+        )}
+        <p className="text-sm font-mono mt-1 text-gray-600 dark:text-gray-400">Total: {formatTime(player2TotalTime)}</p>
       </div>
 
       <div className="text-center p-4 md:pt-20">
@@ -219,6 +279,9 @@ export default function BlackoutV2Page() {
           <p className="text-lg md:text-xl font-semibold text-gray-800 dark:text-gray-200">Turn: {turnNumber}</p>
           <p className="text-xl md:text-2xl font-bold mt-2 text-gray-900 dark:text-gray-100">
             {currentPlayer === 1 ? "Player 1's Turn" : "Player 2's Turn"}
+          </p>
+          <p className="text-lg md:text-xl font-semibold mt-1 text-gray-700 dark:text-gray-300">
+            Turn Time: <span className="font-mono">{formatTime(currentTurnTime)}</span>
           </p>
         </div>
 
@@ -266,23 +329,31 @@ export default function BlackoutV2Page() {
 
         {submittedWords.length > 0 && (
           <div className="mt-4">
-            <p className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">Submitted Words:</p>
+            <p className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">Records:</p>
             <div className="flex flex-wrap gap-2 justify-center">
               {submittedWords.map((item, idx) => {
-                const baseScore = calculateScore(item.word);
-                const lengthBonus = item.word.length;
+                const baseScore = item.isPassed ? 0 : calculateScore(item.word);
+                const lengthBonus = item.isPassed ? 0 : item.word.length;
                 const totalScore = baseScore + lengthBonus;
 
                 return (
                   <span
                     key={idx}
                     className={`px-3 py-1 rounded text-sm border-2 ${
-                      item.player === 1
+                      item.isPassed
+                        ? item.player === 1
+                          ? 'bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-600 text-gray-700 dark:text-gray-400 italic'
+                          : 'bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-600 text-gray-700 dark:text-gray-400 italic'
+                        : item.player === 1
                         ? 'bg-blue-100 dark:bg-blue-900 border-blue-500 dark:border-blue-400 text-gray-900 dark:text-gray-100'
                         : 'bg-red-100 dark:bg-red-900 border-red-500 dark:border-red-400 text-gray-900 dark:text-gray-100'
                     }`}
                   >
-                    {item.word} ({totalScore})
+                    {item.isPassed ? (
+                      <>PASS <span className="font-mono text-xs opacity-75">{formatTime(item.turnTime)}</span></>
+                    ) : (
+                      <>{item.word} ({totalScore}) <span className="font-mono text-xs opacity-75">{formatTime(item.turnTime)}</span></>
+                    )}
                   </span>
                 );
               })}
