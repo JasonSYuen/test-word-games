@@ -53,6 +53,12 @@ export default function BlackoutV2Page() {
   const [currentTurnTime, setCurrentTurnTime] = useState<number>(0);
   const [player1TotalTime, setPlayer1TotalTime] = useState<number>(0);
   const [player2TotalTime, setPlayer2TotalTime] = useState<number>(0);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
+  const [pausedTime, setPausedTime] = useState<number>(0);
+  const [player1Turns, setPlayer1Turns] = useState<number>(0);
+  const [player2Turns, setPlayer2Turns] = useState<number>(0);
+  const [gameEnded, setGameEnded] = useState<boolean>(false);
+  const maxTurnsPerPlayer = 6;
 
   // Use the custom validation hook
   const { isValid, score: currentScore } = useWordValidation(w);
@@ -62,18 +68,40 @@ export default function BlackoutV2Page() {
     setGrid(generateRandomGrid());
   }, []);
 
-  // Update current turn time every 100ms
+  // Update current turn time every 100ms and check for auto-pass
   useEffect(() => {
+    if (isPaused || gameEnded) return;
+
     const interval = setInterval(() => {
-      setCurrentTurnTime(Date.now() - turnStartTime);
+      const elapsed = Date.now() - turnStartTime;
+      setCurrentTurnTime(elapsed);
+
+      // Auto-pass after 60 seconds (60000ms)
+      if (elapsed >= 60000) {
+        handlePassTurn();
+      }
     }, 100);
 
     return () => clearInterval(interval);
-  }, [turnStartTime]);
+  }, [turnStartTime, isPaused, gameEnded]);
 
   // Format time in seconds with one decimal place
   const formatTime = (ms: number): string => {
     return (ms / 1000).toFixed(1) + 's';
+  };
+
+  // Toggle pause
+  const togglePause = () => {
+    if (isPaused) {
+      // Resume: adjust turnStartTime to account for paused duration
+      const pauseDuration = Date.now() - pausedTime;
+      setTurnStartTime(turnStartTime + pauseDuration);
+      setIsPaused(false);
+    } else {
+      // Pause: save current time
+      setPausedTime(Date.now());
+      setIsPaused(true);
+    }
   };
 
   // Submit word and add to current player's score
@@ -86,13 +114,21 @@ export default function BlackoutV2Page() {
       // Calculate turn time
       const turnTime = Date.now() - turnStartTime;
 
+      // Increment turn count for current player
+      let newPlayer1Turns = player1Turns;
+      let newPlayer2Turns = player2Turns;
+
       // Add score and time to current player
       if (currentPlayer === 1) {
         setPlayer1Score(player1Score + totalScore);
         setPlayer1TotalTime(player1TotalTime + turnTime);
+        newPlayer1Turns = player1Turns + 1;
+        setPlayer1Turns(newPlayer1Turns);
       } else {
         setPlayer2Score(player2Score + totalScore);
         setPlayer2TotalTime(player2TotalTime + turnTime);
+        newPlayer2Turns = player2Turns + 1;
+        setPlayer2Turns(newPlayer2Turns);
       }
 
       setSubmittedWords([...submittedWords, { word: w.toUpperCase(), player: currentPlayer, tiles: [...selectedTiles], turnTime }]);
@@ -105,6 +141,12 @@ export default function BlackoutV2Page() {
       setTileOwners(newTileOwners);
       setW('');
       setSelectedTiles([]);
+
+      // Check if game should end
+      if (newPlayer1Turns >= maxTurnsPerPlayer && newPlayer2Turns >= maxTurnsPerPlayer) {
+        setGameEnded(true);
+        return;
+      }
 
       // Snake order turn switching based on move count
       // Moves: 0=P1, 1=P2, 2=P2, 3=P1, 4=P1, 5=P2, 6=P2, 7=P1...
@@ -139,10 +181,19 @@ export default function BlackoutV2Page() {
   const handlePassTurn = () => {
     // Calculate turn time and add to player's total
     const turnTime = Date.now() - turnStartTime;
+
+    // Increment turn count for current player
+    let newPlayer1Turns = player1Turns;
+    let newPlayer2Turns = player2Turns;
+
     if (currentPlayer === 1) {
       setPlayer1TotalTime(player1TotalTime + turnTime);
+      newPlayer1Turns = player1Turns + 1;
+      setPlayer1Turns(newPlayer1Turns);
     } else {
       setPlayer2TotalTime(player2TotalTime + turnTime);
+      newPlayer2Turns = player2Turns + 1;
+      setPlayer2Turns(newPlayer2Turns);
     }
 
     // Add passed turn to records
@@ -150,6 +201,12 @@ export default function BlackoutV2Page() {
 
     setW('');
     setSelectedTiles([]);
+
+    // Check if game should end
+    if (newPlayer1Turns >= maxTurnsPerPlayer && newPlayer2Turns >= maxTurnsPerPlayer) {
+      setGameEnded(true);
+      return;
+    }
 
     // Snake order turn switching (same logic as handleSubmit)
     const newMoveCount = moveCount + 1;
@@ -182,6 +239,9 @@ export default function BlackoutV2Page() {
   };
 
   const handleTileClick = (letter: string, rowIndex: number, colIndex: number) => {
+    // If paused, ignore
+    if (isPaused) return;
+
     const tileKey = `${rowIndex}-${colIndex}`;
 
     // If tile is already used (blacked out), ignore
@@ -198,12 +258,13 @@ export default function BlackoutV2Page() {
   };
 
   const handleMouseDown = (letter: string, rowIndex: number, colIndex: number) => {
+    if (isPaused) return;
     setIsDragging(true);
     handleTileClick(letter, rowIndex, colIndex);
   };
 
   const handleMouseEnter = (letter: string, rowIndex: number, colIndex: number) => {
-    if (isDragging) {
+    if (isDragging && !isPaused) {
       handleTileClick(letter, rowIndex, colIndex);
     }
   };
@@ -220,21 +281,64 @@ export default function BlackoutV2Page() {
     }
   };
 
+  // Restart game
+  const handleRestart = () => {
+    setGrid(generateRandomGrid());
+    setW('');
+    setSelectedTiles([]);
+    setPlayer1Score(0);
+    setPlayer2Score(0);
+    setCurrentPlayer(1);
+    setTurnNumber(1);
+    setMoveCount(0);
+    setSubmittedWords([]);
+    setUsedTiles(new Set());
+    setTileOwners(new Map());
+    setTurnStartTime(Date.now());
+    setCurrentTurnTime(0);
+    setPlayer1TotalTime(0);
+    setPlayer2TotalTime(0);
+    setIsPaused(false);
+    setPausedTime(0);
+    setPlayer1Turns(0);
+    setPlayer2Turns(0);
+    setGameEnded(false);
+  };
+
+  // Determine winner
+  const winner = player1Score > player2Score ? 1 : player1Score < player2Score ? 2 : 0; // 0 = tie
+
+  // Calculate black overlay opacity based on timer (0 at 0s, 1 at 60s) - freeze when game ends
+  const blackOpacity = gameEnded ? 0 : Math.min(currentTurnTime / 60000, 1) * 0.8; // Max 80% opacity
+
   return (
     <div className="relative min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100" onClick={handleClickOutside}>
-      <GameNav currentGame="blackoutv2" />
+      {/* Black timer overlay */}
+      <div
+        className="fixed inset-0 bg-black pointer-events-none transition-opacity duration-300"
+        style={{ opacity: blackOpacity, zIndex: 5 }}
+      ></div>
+
+      <div className="relative z-50">
+        <GameNav currentGame="blackoutv2" />
+      </div>
+
+      {/* Title directly under GameNav */}
+      {!gameEnded && (
+        <div className="text-center pt-16 pb-4 relative" style={{ zIndex: 6 }}>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">Blackout V2</h1>
+        </div>
+      )}
 
       {/* Player Scores - Desktop: side by side, Mobile: stacked */}
-      <div className="md:hidden flex justify-around pt-16 px-4 pb-2">
+      {!gameEnded && (
+        <div className="md:hidden flex justify-around px-4 pb-2 relative" style={{ zIndex: 6 }}>
         {/* Mobile: Horizontal layout */}
         <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg shadow flex-1 mr-2">
           <p className={`text-sm font-bold ${currentPlayer === 1 ? 'text-blue-600 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'}`}>
             P1 {currentPlayer === 1 && '⭐'}
           </p>
           <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{player1Score}</p>
-          {currentPlayer === 1 && (
-            <p className="text-xs font-mono mt-1 text-gray-700 dark:text-gray-300">{formatTime(currentTurnTime)}</p>
-          )}
           <p className="text-xs font-mono mt-1 text-gray-600 dark:text-gray-400">Total: {formatTime(player1TotalTime)}</p>
         </div>
         <div className="p-3 bg-red-100 dark:bg-red-900 rounded-lg shadow flex-1 ml-2">
@@ -242,47 +346,50 @@ export default function BlackoutV2Page() {
             P2 {currentPlayer === 2 && '⭐'}
           </p>
           <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{player2Score}</p>
-          {currentPlayer === 2 && (
-            <p className="text-xs font-mono mt-1 text-gray-700 dark:text-gray-300">{formatTime(currentTurnTime)}</p>
-          )}
           <p className="text-xs font-mono mt-1 text-gray-600 dark:text-gray-400">Total: {formatTime(player2TotalTime)}</p>
         </div>
       </div>
+      )}
 
       {/* Player 1 Score - Desktop: Left Side */}
-      <div className="hidden md:block absolute top-20 left-4 p-4 bg-blue-100 dark:bg-blue-900 rounded-lg shadow">
+      {!gameEnded && (
+        <div className="hidden md:block absolute top-20 left-4 p-4 bg-blue-100 dark:bg-blue-900 rounded-lg shadow" style={{ zIndex: 6 }}>
         <p className={`text-lg font-bold ${currentPlayer === 1 ? 'text-blue-600 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'}`}>
           Player 1 {currentPlayer === 1 && '⭐'}
         </p>
         <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{player1Score}</p>
-        {currentPlayer === 1 && (
-          <p className="text-sm font-mono mt-1 text-gray-700 dark:text-gray-300">{formatTime(currentTurnTime)}</p>
-        )}
         <p className="text-sm font-mono mt-1 text-gray-600 dark:text-gray-400">Total: {formatTime(player1TotalTime)}</p>
       </div>
+      )}
 
       {/* Player 2 Score - Desktop: Right Side */}
-      <div className="hidden md:block absolute top-20 right-4 p-4 bg-red-100 dark:bg-red-900 rounded-lg shadow">
+      {!gameEnded && (
+        <div className="hidden md:block absolute top-20 right-4 p-4 bg-red-100 dark:bg-red-900 rounded-lg shadow" style={{ zIndex: 6 }}>
         <p className={`text-lg font-bold ${currentPlayer === 2 ? 'text-red-600 dark:text-red-300' : 'text-gray-600 dark:text-gray-400'}`}>
           Player 2 {currentPlayer === 2 && '⭐'}
         </p>
         <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{player2Score}</p>
-        {currentPlayer === 2 && (
-          <p className="text-sm font-mono mt-1 text-gray-700 dark:text-gray-300">{formatTime(currentTurnTime)}</p>
-        )}
         <p className="text-sm font-mono mt-1 text-gray-600 dark:text-gray-400">Total: {formatTime(player2TotalTime)}</p>
       </div>
+      )}
 
-      <div className="text-center p-4 md:pt-20">
-        <div className="mb-4">
-          <h1 className="text-2xl md:text-3xl font-bold mb-2 text-gray-900 dark:text-gray-100">Blackout V2</h1>
-          <p className="text-lg md:text-xl font-semibold text-gray-800 dark:text-gray-200">Turn: {turnNumber}</p>
-          <p className="text-xl md:text-2xl font-bold mt-2 text-gray-900 dark:text-gray-100">
-            {currentPlayer === 1 ? "Player 1's Turn" : "Player 2's Turn"}
+      {!gameEnded && (
+        <div className="text-center p-2 relative" style={{ zIndex: 6 }}>
+        <div className="mb-3 flex items-center justify-center gap-4 md:gap-8 text-lg md:text-2xl">
+          <p className="font-bold text-gray-900 dark:text-gray-100">
+            {currentPlayer === 1 ? "Player 1" : "Player 2"}
           </p>
-          <p className="text-lg md:text-xl font-semibold mt-1 text-gray-700 dark:text-gray-300">
-            Turn Time: <span className="font-mono">{formatTime(currentTurnTime)}</span>
+          <p className="font-semibold text-gray-700 dark:text-gray-300">
+            <span className={`font-mono ${currentTurnTime >= 50000 ? 'text-red-600 dark:text-red-400' : ''}`}>
+              {formatTime(currentTurnTime)}
+            </span>
+            {currentTurnTime >= 50000 && currentTurnTime < 60000 && (
+              <span className="ml-1 text-sm md:text-base text-red-600 dark:text-red-400">
+                ({Math.ceil((60000 - currentTurnTime) / 1000)}s)
+              </span>
+            )}
           </p>
+          <p className="font-semibold text-gray-800 dark:text-gray-200">Turn {turnNumber}</p>
         </div>
 
         <p className="text-base md:text-xl text-gray-900 dark:text-gray-100">
@@ -305,7 +412,7 @@ export default function BlackoutV2Page() {
         <div className="flex gap-2 justify-center mt-3 flex-wrap">
           <button
             onClick={handleSubmit}
-            disabled={!isValid || w.length < 3}
+            disabled={!isValid || w.length < 3 || isPaused}
             className="px-4 md:px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold text-sm md:text-base"
           >
             Submit Word
@@ -315,55 +422,74 @@ export default function BlackoutV2Page() {
               setW('');
               setSelectedTiles([]);
             }}
-            className="px-3 md:px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm md:text-base"
+            disabled={isPaused}
+            className="px-3 md:px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm md:text-base"
           >
             Clear
           </button>
           <button
             onClick={handlePassTurn}
-            className="px-3 md:px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 font-semibold text-sm md:text-base"
+            disabled={isPaused}
+            className="px-3 md:px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold text-sm md:text-base"
           >
             Pass Turn
           </button>
+          <button
+            onClick={togglePause}
+            className={`px-3 md:px-4 py-2 text-white rounded font-semibold text-sm md:text-base ${
+              isPaused
+                ? 'bg-blue-500 hover:bg-blue-600'
+                : 'bg-orange-500 hover:bg-orange-600'
+            }`}
+          >
+            {isPaused ? '▶ Resume' : '⏸ Pause'}
+          </button>
         </div>
-
-        {submittedWords.length > 0 && (
-          <div className="mt-4">
-            <p className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">Records:</p>
-            <div className="flex flex-wrap gap-2 justify-center">
-              {submittedWords.map((item, idx) => {
-                const baseScore = item.isPassed ? 0 : calculateScore(item.word);
-                const lengthBonus = item.isPassed ? 0 : item.word.length;
-                const totalScore = baseScore + lengthBonus;
-
-                return (
-                  <span
-                    key={idx}
-                    className={`px-3 py-1 rounded text-sm border-2 ${
-                      item.isPassed
-                        ? item.player === 1
-                          ? 'bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-600 text-gray-700 dark:text-gray-400 italic'
-                          : 'bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-600 text-gray-700 dark:text-gray-400 italic'
-                        : item.player === 1
-                        ? 'bg-blue-100 dark:bg-blue-900 border-blue-500 dark:border-blue-400 text-gray-900 dark:text-gray-100'
-                        : 'bg-red-100 dark:bg-red-900 border-red-500 dark:border-red-400 text-gray-900 dark:text-gray-100'
-                    }`}
-                  >
-                    {item.isPassed ? (
-                      <>PASS <span className="font-mono text-xs opacity-75">{formatTime(item.turnTime)}</span></>
-                    ) : (
-                      <>{item.word} ({totalScore}) <span className="font-mono text-xs opacity-75">{formatTime(item.turnTime)}</span></>
-                    )}
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-        )}
       </div>
+      )}
 
-      <div className="flex items-center justify-center px-2 md:px-0" onMouseUp={handleMouseUp}>
+      {/* Game End Panel - replaces everything above the grid */}
+      {gameEnded && (
+        <div className="flex justify-center px-4 pt-16 pb-6 relative" style={{ zIndex: 7 }}>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 md:p-8 max-w-md w-full text-center shadow-2xl border-4 border-purple-500">
+            <h2 className="text-3xl md:text-4xl font-bold mb-3 text-gray-900 dark:text-gray-100">Game Over!</h2>
+            {winner === 0 ? (
+              <p className="text-xl md:text-2xl mb-4 text-gray-700 dark:text-gray-300">It's a Tie!</p>
+            ) : (
+              <p className="text-xl md:text-2xl mb-4 text-gray-700 dark:text-gray-300">
+                Player {winner} Wins!
+              </p>
+            )}
+            <div className="mb-4 space-y-2">
+              <p className="text-lg md:text-xl text-gray-900 dark:text-gray-100">
+                <span className="font-bold text-blue-600 dark:text-blue-400">Player 1:</span> {player1Score} points
+              </p>
+              <p className="text-lg md:text-xl text-gray-900 dark:text-gray-100">
+                <span className="font-bold text-red-600 dark:text-red-400">Player 2:</span> {player2Score} points
+              </p>
+            </div>
+            <button
+              onClick={handleRestart}
+              className="px-6 md:px-8 py-2 md:py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 font-semibold text-base md:text-lg"
+            >
+              Play Again
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center justify-center px-2 md:px-0 relative" style={{ zIndex: 6 }} onMouseUp={handleMouseUp}>
         <div className="relative w-full max-w-[500px]" onClick={(e) => e.stopPropagation()}>
+          {/* Pause Overlay */}
+          {isPaused && (
+            <div className="absolute top-0 left-0 w-full h-full bg-gray-500 flex items-center justify-center rounded-lg" style={{ zIndex: 10 }}>
+              <div className="text-center">
+                <p className="text-4xl md:text-6xl font-bold text-white mb-4">Game Paused</p>
+                <p className="text-lg md:text-xl text-gray-100">Click Resume to continue</p>
+              </div>
+            </div>
+          )}
+
           {/* SVG overlay for drawing lines */}
           <svg className="absolute top-0 left-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
             {submittedWords.map((wordData, idx) => {
@@ -421,7 +547,7 @@ export default function BlackoutV2Page() {
                           ? 'bg-blue-600 dark:bg-blue-700 cursor-not-allowed'
                           : 'bg-red-600 dark:bg-red-700 cursor-not-allowed'
                         : isSelected
-                        ? 'bg-blue-500 dark:bg-blue-600 text-white cursor-pointer'
+                        ? 'bg-green-400 dark:bg-green-500 text-white cursor-pointer'
                         : 'bg-white dark:bg-gray-800 hover:bg-blue-100 dark:hover:bg-blue-900 active:bg-blue-200 dark:active:bg-blue-800 cursor-pointer text-gray-900 dark:text-gray-100'
                     }`}
                   >
@@ -446,6 +572,39 @@ export default function BlackoutV2Page() {
               })
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Records section below the grid */}
+      <div className="mt-6 pb-8 text-center relative" style={{ zIndex: 6 }}>
+        <p className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">Records:</p>
+        <div className="flex flex-wrap gap-2 justify-center px-4 min-h-[2rem]">
+          {submittedWords.map((item, idx) => {
+            const baseScore = item.isPassed ? 0 : calculateScore(item.word);
+            const lengthBonus = item.isPassed ? 0 : item.word.length;
+            const totalScore = baseScore + lengthBonus;
+
+            return (
+              <span
+                key={idx}
+                className={`px-3 py-1 rounded text-sm border-2 ${
+                  item.isPassed
+                    ? item.player === 1
+                      ? 'bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-600 text-gray-700 dark:text-gray-400 italic'
+                      : 'bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-600 text-gray-700 dark:text-gray-400 italic'
+                    : item.player === 1
+                    ? 'bg-blue-100 dark:bg-blue-900 border-blue-500 dark:border-blue-400 text-gray-900 dark:text-gray-100'
+                    : 'bg-red-100 dark:bg-red-900 border-red-500 dark:border-red-400 text-gray-900 dark:text-gray-100'
+                }`}
+              >
+                {item.isPassed ? (
+                  <>PASS <span className="font-mono text-xs opacity-75">{formatTime(item.turnTime)}</span></>
+                ) : (
+                  <>{item.word} ({totalScore}) <span className="font-mono text-xs opacity-75">{formatTime(item.turnTime)}</span></>
+                )}
+              </span>
+            );
+          })}
         </div>
       </div>
     </div>
