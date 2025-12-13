@@ -482,7 +482,7 @@ export default function BlackoutV2Page() {
         <div className="relative w-full max-w-[500px]" onClick={(e) => e.stopPropagation()}>
           {/* Pause Overlay */}
           {isPaused && (
-            <div className="absolute top-0 left-0 w-full h-full bg-gray-500 flex items-center justify-center rounded-lg" style={{ zIndex: 10 }}>
+            <div className="absolute top-0 left-0 w-full h-full bg-gray-500 bg-opacity-95 flex items-center justify-center rounded-lg" style={{ zIndex: 10 }}>
               <div className="text-center">
                 <p className="text-4xl md:text-6xl font-bold text-white mb-4">Game Paused</p>
                 <p className="text-lg md:text-xl text-gray-100">Click Resume to continue</p>
@@ -576,8 +576,8 @@ export default function BlackoutV2Page() {
       </div>
 
       {/* Records section below the grid */}
-      <div className="mt-6 pb-20 text-center relative" style={{ zIndex: 10 }}>
-        <p className="text-sm font-semibold mb-4 text-gray-800 dark:text-gray-200">Records:</p>
+      <div className="mt-6 pb-20 text-center relative" style={{ zIndex: 20 }}>
+        <p className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">Records:</p>
         <div className="flex flex-wrap gap-2 justify-center px-4 min-h-[2rem]">
           {submittedWords.map((item, idx) => {
             const baseScore = item.isPassed ? 0 : calculateScore(item.word);
