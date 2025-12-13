@@ -313,9 +313,9 @@ export default function BlackoutV2Page() {
 
   return (
     <div className="relative min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100" onClick={handleClickOutside}>
-      {/* Black timer overlay */}
+      {/* Timer overlay - inverts in dark mode */}
       <div
-        className="fixed inset-0 bg-black pointer-events-none transition-opacity duration-300"
+        className="fixed inset-0 bg-black dark:bg-white pointer-events-none transition-opacity duration-300"
         style={{ opacity: blackOpacity, zIndex: 5 }}
       ></div>
 
@@ -428,13 +428,6 @@ export default function BlackoutV2Page() {
             Clear
           </button>
           <button
-            onClick={handlePassTurn}
-            disabled={isPaused}
-            className="px-3 md:px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold text-sm md:text-base"
-          >
-            Pass Turn
-          </button>
-          <button
             onClick={togglePause}
             className={`px-3 md:px-4 py-2 text-white rounded font-semibold text-sm md:text-base ${
               isPaused
@@ -443,6 +436,13 @@ export default function BlackoutV2Page() {
             }`}
           >
             {isPaused ? '▶ Resume' : '⏸ Pause'}
+          </button>
+          <button
+            onClick={handlePassTurn}
+            disabled={isPaused}
+            className="px-3 md:px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold text-sm md:text-base"
+          >
+            Pass Turn
           </button>
         </div>
       </div>
@@ -577,7 +577,7 @@ export default function BlackoutV2Page() {
 
       {/* Records section below the grid */}
       <div className="mt-6 pb-20 text-center relative" style={{ zIndex: 10 }}>
-        <p className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">Records:</p>
+        <p className="text-sm font-semibold mb-4 text-gray-800 dark:text-gray-200">Records:</p>
         <div className="flex flex-wrap gap-2 justify-center px-4 min-h-[2rem]">
           {submittedWords.map((item, idx) => {
             const baseScore = item.isPassed ? 0 : calculateScore(item.word);
