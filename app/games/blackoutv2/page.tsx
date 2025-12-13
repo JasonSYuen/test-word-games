@@ -576,7 +576,7 @@ export default function BlackoutV2Page() {
       </div>
 
       {/* Records section below the grid */}
-      <div className="mt-6 pb-8 text-center relative" style={{ zIndex: 10 }}>
+      <div className="mt-6 pb-20 text-center relative" style={{ zIndex: 10 }}>
         <p className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">Records:</p>
         <div className="flex flex-wrap gap-2 justify-center px-4 min-h-[2rem]">
           {submittedWords.map((item, idx) => {
