@@ -44,7 +44,7 @@ export default function BlackoutV2Page() {
   const [currentPlayer, setCurrentPlayer] = useState<1 | 2>(1);
   const [turnNumber, setTurnNumber] = useState(1);
   const [moveCount, setMoveCount] = useState(0); // Track total moves for snake order
-  const [submittedWords, setSubmittedWords] = useState<Array<{word: string, player: 1 | 2, tiles: string[], turnTime: number, isPassed?: boolean}>>([]);
+  const [submittedWords, setSubmittedWords] = useState<Array<{ word: string, player: 1 | 2, tiles: string[], turnTime: number, isPassed?: boolean }>>([]);
   const [usedTiles, setUsedTiles] = useState<Set<string>>(new Set());
   const [tileOwners, setTileOwners] = useState<Map<string, 1 | 2>>(new Map()); // Track which player used each tile
 
@@ -333,119 +333,118 @@ export default function BlackoutV2Page() {
       {/* Player Scores - Desktop: side by side, Mobile: stacked */}
       {!gameEnded && (
         <div className="md:hidden flex justify-around px-4 pb-2 relative" style={{ zIndex: 6 }}>
-        {/* Mobile: Horizontal layout */}
-        <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg shadow flex-1 mr-2">
-          <p className={`text-sm font-bold ${currentPlayer === 1 ? 'text-blue-600 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'}`}>
-            P1 {currentPlayer === 1 && '⭐'}
-          </p>
-          <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{player1Score}</p>
-          <p className="text-xs font-mono mt-1 text-gray-600 dark:text-gray-400">Total: {formatTime(player1TotalTime)}</p>
+          {/* Mobile: Horizontal layout */}
+          <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg shadow flex-1 mr-2">
+            <p className={`text-sm font-bold ${currentPlayer === 1 ? 'text-blue-600 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'}`}>
+              P1 {currentPlayer === 1 && '⭐'}
+            </p>
+            <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{player1Score}</p>
+            <p className="text-xs font-mono mt-1 text-gray-600 dark:text-gray-400">Total: {formatTime(player1TotalTime)}</p>
+          </div>
+          <div className="p-3 bg-red-100 dark:bg-red-900 rounded-lg shadow flex-1 ml-2">
+            <p className={`text-sm font-bold ${currentPlayer === 2 ? 'text-red-600 dark:text-red-300' : 'text-gray-600 dark:text-gray-400'}`}>
+              P2 {currentPlayer === 2 && '⭐'}
+            </p>
+            <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{player2Score}</p>
+            <p className="text-xs font-mono mt-1 text-gray-600 dark:text-gray-400">Total: {formatTime(player2TotalTime)}</p>
+          </div>
         </div>
-        <div className="p-3 bg-red-100 dark:bg-red-900 rounded-lg shadow flex-1 ml-2">
-          <p className={`text-sm font-bold ${currentPlayer === 2 ? 'text-red-600 dark:text-red-300' : 'text-gray-600 dark:text-gray-400'}`}>
-            P2 {currentPlayer === 2 && '⭐'}
-          </p>
-          <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{player2Score}</p>
-          <p className="text-xs font-mono mt-1 text-gray-600 dark:text-gray-400">Total: {formatTime(player2TotalTime)}</p>
-        </div>
-      </div>
       )}
 
       {/* Player 1 Score - Desktop: Left Side */}
       {!gameEnded && (
         <div className="hidden md:block absolute top-20 left-4 p-4 bg-blue-100 dark:bg-blue-900 rounded-lg shadow" style={{ zIndex: 6 }}>
-        <p className={`text-lg font-bold ${currentPlayer === 1 ? 'text-blue-600 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'}`}>
-          Player 1 {currentPlayer === 1 && '⭐'}
-        </p>
-        <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{player1Score}</p>
-        <p className="text-sm font-mono mt-1 text-gray-600 dark:text-gray-400">Total: {formatTime(player1TotalTime)}</p>
-      </div>
+          <p className={`text-lg font-bold ${currentPlayer === 1 ? 'text-blue-600 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'}`}>
+            Player 1 {currentPlayer === 1 && '⭐'}
+          </p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{player1Score}</p>
+          <p className="text-sm font-mono mt-1 text-gray-600 dark:text-gray-400">Total: {formatTime(player1TotalTime)}</p>
+        </div>
       )}
 
       {/* Player 2 Score - Desktop: Right Side */}
       {!gameEnded && (
         <div className="hidden md:block absolute top-20 right-4 p-4 bg-red-100 dark:bg-red-900 rounded-lg shadow" style={{ zIndex: 6 }}>
-        <p className={`text-lg font-bold ${currentPlayer === 2 ? 'text-red-600 dark:text-red-300' : 'text-gray-600 dark:text-gray-400'}`}>
-          Player 2 {currentPlayer === 2 && '⭐'}
-        </p>
-        <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{player2Score}</p>
-        <p className="text-sm font-mono mt-1 text-gray-600 dark:text-gray-400">Total: {formatTime(player2TotalTime)}</p>
-      </div>
+          <p className={`text-lg font-bold ${currentPlayer === 2 ? 'text-red-600 dark:text-red-300' : 'text-gray-600 dark:text-gray-400'}`}>
+            Player 2 {currentPlayer === 2 && '⭐'}
+          </p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{player2Score}</p>
+          <p className="text-sm font-mono mt-1 text-gray-600 dark:text-gray-400">Total: {formatTime(player2TotalTime)}</p>
+        </div>
       )}
 
       {!gameEnded && (
         <div className="text-center p-2 relative" style={{ zIndex: 6 }}>
-        <div className="mb-3 flex items-center justify-center gap-4 md:gap-8 text-lg md:text-2xl">
-          <p className="font-bold text-gray-900 dark:text-gray-100">
-            {currentPlayer === 1 ? "Player 1" : "Player 2"}
-          </p>
-          <p className="font-semibold text-gray-700 dark:text-gray-300">
-            <span className={`font-mono ${currentTurnTime >= 50000 ? 'text-red-600 dark:text-red-400' : ''}`}>
-              {formatTime(currentTurnTime)}
-            </span>
-            {currentTurnTime >= 50000 && currentTurnTime < 60000 && (
-              <span className="ml-1 text-sm md:text-base text-red-600 dark:text-red-400">
-                ({Math.ceil((60000 - currentTurnTime) / 1000)}s)
+          <div className="mb-3 flex items-center justify-center gap-4 md:gap-8 text-lg md:text-2xl">
+            <p className="font-bold text-gray-900 dark:text-gray-100">
+              {currentPlayer === 1 ? "Player 1" : "Player 2"}
+            </p>
+            <p className="font-semibold text-gray-700 dark:text-gray-300">
+              <span className={`font-mono ${currentTurnTime >= 50000 ? 'text-red-600 dark:text-red-400' : ''}`}>
+                {formatTime(currentTurnTime)}
+              </span>
+              {currentTurnTime >= 50000 && currentTurnTime < 60000 && (
+                <span className="ml-1 text-sm md:text-base text-red-600 dark:text-red-400">
+                  ({Math.ceil((60000 - currentTurnTime) / 1000)}s)
+                </span>
+              )}
+            </p>
+            <p className="font-semibold text-gray-800 dark:text-gray-200">Turn {turnNumber}</p>
+          </div>
+
+          <p className="text-base md:text-xl text-gray-900 dark:text-gray-100">
+            Current Word: <span className="font-bold">{w || '(empty)'}</span>
+            {isValid !== null && (
+              <span className={`ml-2 md:ml-3 text-sm md:text-lg ${isValid ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                {isValid ? '✓ Valid' : '✗ Invalid'}
               </span>
             )}
           </p>
-          <p className="font-semibold text-gray-800 dark:text-gray-200">Turn {turnNumber}</p>
-        </div>
+          <p className="text-sm md:text-lg font-semibold mt-2 text-gray-800 dark:text-gray-200">
+            Word Score: {currentScore} points
+            {w.length >= 3 && (
+              <span className="text-green-600 dark:text-green-400 ml-2 block md:inline">
+                +{w.length} length bonus = {currentScore + w.length} total
+              </span>
+            )}
+          </p>
 
-        <p className="text-base md:text-xl text-gray-900 dark:text-gray-100">
-          Current Word: <span className="font-bold">{w || '(empty)'}</span>
-          {isValid !== null && (
-            <span className={`ml-2 md:ml-3 text-sm md:text-lg ${isValid ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-              {isValid ? '✓ Valid' : '✗ Invalid'}
-            </span>
-          )}
-        </p>
-        <p className="text-sm md:text-lg font-semibold mt-2 text-gray-800 dark:text-gray-200">
-          Word Score: {currentScore} points
-          {w.length >= 3 && (
-            <span className="text-green-600 dark:text-green-400 ml-2 block md:inline">
-              +{w.length} length bonus = {currentScore + w.length} total
-            </span>
-          )}
-        </p>
-
-        <div className="flex gap-2 justify-center mt-3 flex-wrap">
-          <button
-            onClick={handleSubmit}
-            disabled={!isValid || w.length < 3 || isPaused}
-            className="px-4 md:px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold text-sm md:text-base"
-          >
-            Submit Word
-          </button>
-          <button
-            onClick={() => {
-              setW('');
-              setSelectedTiles([]);
-            }}
-            disabled={isPaused}
-            className="px-3 md:px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm md:text-base"
-          >
-            Clear
-          </button>
-          <button
-            onClick={togglePause}
-            className={`px-3 md:px-4 py-2 text-white rounded font-semibold text-sm md:text-base ${
-              isPaused
-                ? 'bg-blue-500 hover:bg-blue-600'
-                : 'bg-orange-500 hover:bg-orange-600'
-            }`}
-          >
-            {isPaused ? '▶ Resume' : '⏸ Pause'}
-          </button>
-          <button
-            onClick={handlePassTurn}
-            disabled={isPaused}
-            className="px-3 md:px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold text-sm md:text-base"
-          >
-            Pass Turn
-          </button>
+          <div className="flex gap-2 justify-center mt-3 flex-wrap">
+            <button
+              onClick={handleSubmit}
+              disabled={!isValid || w.length < 3 || isPaused}
+              className="px-4 md:px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold text-sm md:text-base"
+            >
+              Submit Word
+            </button>
+            <button
+              onClick={() => {
+                setW('');
+                setSelectedTiles([]);
+              }}
+              disabled={isPaused}
+              className="px-3 md:px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm md:text-base"
+            >
+              Clear
+            </button>
+            <button
+              onClick={togglePause}
+              className={`px-3 md:px-4 py-2 text-white rounded font-semibold text-sm md:text-base ${isPaused
+                  ? 'bg-blue-500 hover:bg-blue-600'
+                  : 'bg-orange-500 hover:bg-orange-600'
+                }`}
+            >
+              {isPaused ? '▶ Resume' : '⏸ Pause'}
+            </button>
+            <button
+              onClick={handlePassTurn}
+              disabled={isPaused}
+              className="px-3 md:px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold text-sm md:text-base"
+            >
+              Pass Turn
+            </button>
+          </div>
         </div>
-      </div>
       )}
 
       {/* Game End Panel - replaces everything above the grid */}
@@ -541,30 +540,27 @@ export default function BlackoutV2Page() {
                     key={tileKey}
                     onMouseDown={() => handleMouseDown(cell, rowIndex, colIndex)}
                     onMouseEnter={() => handleMouseEnter(cell, rowIndex, colIndex)}
-                    className={`border border-gray-300 dark:border-gray-600 aspect-square flex flex-col items-center justify-center relative ${
-                      isUsed
+                    className={`border border-gray-300 dark:border-gray-600 aspect-square flex flex-col items-center justify-center relative ${isUsed
                         ? owner === 1
                           ? 'bg-blue-600 dark:bg-blue-700 cursor-not-allowed'
                           : 'bg-red-600 dark:bg-red-700 cursor-not-allowed'
                         : isSelected
-                        ? 'bg-green-400 dark:bg-green-500 text-white cursor-pointer'
-                        : 'bg-white dark:bg-gray-800 hover:bg-blue-100 dark:hover:bg-blue-900 active:bg-blue-200 dark:active:bg-blue-800 cursor-pointer text-gray-900 dark:text-gray-100'
-                    }`}
+                          ? 'bg-green-400 dark:bg-green-500 text-white cursor-pointer'
+                          : 'bg-white dark:bg-gray-800 hover:bg-blue-100 dark:hover:bg-blue-900 active:bg-blue-200 dark:active:bg-blue-800 cursor-pointer text-gray-900 dark:text-gray-100'
+                      }`}
                   >
-                    <span className={`text-xl md:text-2xl font-bold ${
-                      isUsed
+                    <span className={`text-xl md:text-2xl font-bold ${isUsed
                         ? owner === 1
                           ? 'text-blue-200 opacity-40'
                           : 'text-red-200 opacity-40'
                         : ''
-                    }`}>{cell}</span>
-                    <span className={`text-[10px] md:text-xs absolute bottom-0.5 md:bottom-1 right-0.5 md:right-1 ${
-                      isUsed
+                      }`}>{cell}</span>
+                    <span className={`text-[10px] md:text-xs absolute bottom-0.5 md:bottom-1 right-0.5 md:right-1 ${isUsed
                         ? owner === 1
                           ? 'text-blue-200 opacity-40'
                           : 'text-red-200 opacity-40'
                         : ''
-                    }`}>
+                      }`}>
                       {letterPoints[cell]}
                     </span>
                   </div>
@@ -587,15 +583,14 @@ export default function BlackoutV2Page() {
             return (
               <span
                 key={idx}
-                className={`px-3 py-1 rounded text-sm border-2 ${
-                  item.isPassed
+                className={`inline-block px-3 py-1 rounded text-sm border-2 ${item.isPassed
                     ? item.player === 1
                       ? 'bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-600 text-gray-700 dark:text-gray-400 italic'
                       : 'bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-600 text-gray-700 dark:text-gray-400 italic'
                     : item.player === 1
-                    ? 'bg-blue-100 dark:bg-blue-900 border-blue-500 dark:border-blue-400 text-gray-900 dark:text-gray-100'
-                    : 'bg-red-100 dark:bg-red-900 border-red-500 dark:border-red-400 text-gray-900 dark:text-gray-100'
-                }`}
+                      ? 'bg-blue-100 dark:bg-blue-900 border-blue-500 dark:border-blue-400 text-gray-900 dark:text-gray-100'
+                      : 'bg-red-100 dark:bg-red-900 border-red-500 dark:border-red-400 text-gray-900 dark:text-gray-100'
+                  }`}
               >
                 {item.isPassed ? (
                   <>PASS <span className="font-mono text-xs opacity-75">{formatTime(item.turnTime)}</span></>
