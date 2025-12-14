@@ -308,17 +308,11 @@ export default function BlackoutV2Page() {
   // Determine winner
   const winner = player1Score > player2Score ? 1 : player1Score < player2Score ? 2 : 0; // 0 = tie
 
-  // Calculate black overlay opacity based on timer (0 at 0s, 1 at 60s) - freeze when game ends
-  const blackOpacity = gameEnded ? 0 : Math.min(currentTurnTime / 60000, 1) * 0.8; // Max 80% opacity
+  // Calculate circular timer progress (0 to 1)
+  const timerProgress = gameEnded || isPaused ? 0 : Math.min(currentTurnTime / 60000, 1);
 
   return (
     <div className="relative min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100" onClick={handleClickOutside}>
-      {/* Timer overlay - inverts in dark mode */}
-      <div
-        className="fixed inset-0 bg-black dark:bg-white pointer-events-none transition-opacity duration-300"
-        style={{ opacity: blackOpacity, zIndex: 5 }}
-      ></div>
-
       <div className="relative z-50">
         <GameNav currentGame="blackoutv2" />
       </div>
@@ -479,6 +473,21 @@ export default function BlackoutV2Page() {
 
       <div className="flex items-center justify-center px-2 md:px-0 relative" style={{ zIndex: 6 }} onMouseUp={handleMouseUp}>
         <div className="relative w-full max-w-[500px]" onClick={(e) => e.stopPropagation()}>
+          {/* Circular timer behind grid */}
+          {!gameEnded && !isPaused && timerProgress > 0 && (
+            <svg className="absolute top-0 left-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }} viewBox="0 0 100 100">
+              <path
+                d={`M 50 50 L 50 1 A 49 49 0 ${timerProgress > 0.5 ? 1 : 0} 1 ${
+                  50 + 49 * Math.sin(timerProgress * 2 * Math.PI)
+                } ${
+                  50 - 49 * Math.cos(timerProgress * 2 * Math.PI)
+                } Z`}
+                fill="rgb(168, 85, 247)"
+                opacity="0.3"
+              />
+            </svg>
+          )}
+
           {/* Pause Overlay */}
           {isPaused && (
             <div className="absolute top-0 left-0 w-full h-full bg-gray-500 bg-opacity-95 flex items-center justify-center rounded-lg" style={{ zIndex: 10 }}>
@@ -574,7 +583,7 @@ export default function BlackoutV2Page() {
       {/* Records section below the grid */}
       <div className="mt-6 pb-20 text-center relative" style={{ zIndex: 20 }}>
         <p className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">Records:</p>
-        <div id="records-container" className="grid grid-cols-[repeat(auto-fit,minmax(100px,max-content))] auto-rows-max gap-2 justify-center px-4 py-2">
+        <div id="records-container" className="flex flex-wrap gap-2 justify-center items-start px-4 py-2">
           {submittedWords.map((item, idx) => {
             const baseScore = item.isPassed ? 0 : calculateScore(item.word);
             const lengthBonus = item.isPassed ? 0 : item.word.length;
@@ -583,7 +592,7 @@ export default function BlackoutV2Page() {
             return (
               <span
                 key={idx}
-                style={{ minHeight: '28px', display: 'flex', alignItems: 'center' }}
+                style={{ height: '32px', display: 'inline-flex', alignItems: 'center' }}
                 className={`px-3 py-1 rounded text-sm border-2 ${item.isPassed
                     ? item.player === 1
                       ? 'bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-600 text-gray-700 dark:text-gray-400 italic'
