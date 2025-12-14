@@ -68,30 +68,6 @@ export default function BlackoutV2Page() {
     setGrid(generateRandomGrid());
   }, []);
 
-  // Force reflow on records container when words are added (fixes mobile Safari clipping)
-  useEffect(() => {
-    if (submittedWords.length === 0) return;
-
-    // Simulate user interaction timing - fixes mobile Safari flex-wrap clipping
-    setTimeout(() => {
-      const container = document.getElementById('records-container');
-      if (container) {
-        // Force synchronous layout recalculation
-        const badges = container.querySelectorAll('span');
-        badges.forEach((badge) => {
-          // Reading these properties forces immediate layout
-          void badge.offsetWidth;
-          void badge.offsetHeight;
-          void badge.getBoundingClientRect();
-        });
-
-        // Force container recalc last
-        void container.scrollHeight;
-        void container.offsetHeight;
-      }
-    }, 0);
-  }, [submittedWords]);
-
   // Update current turn time every 100ms and check for auto-pass
   useEffect(() => {
     if (isPaused || gameEnded) return;
@@ -598,7 +574,7 @@ export default function BlackoutV2Page() {
       {/* Records section below the grid */}
       <div className="mt-6 pb-20 text-center relative" style={{ zIndex: 20 }}>
         <p className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">Records:</p>
-        <div id="records-container" className="grid grid-cols-[repeat(auto-fit,minmax(100px,auto))] gap-2 justify-center px-4 py-1" style={{ justifyItems: 'center' }}>
+        <div id="records-container" className="grid grid-cols-[repeat(auto-fit,minmax(100px,max-content))] auto-rows-max gap-2 justify-center px-4 py-2">
           {submittedWords.map((item, idx) => {
             const baseScore = item.isPassed ? 0 : calculateScore(item.word);
             const lengthBonus = item.isPassed ? 0 : item.word.length;
@@ -607,7 +583,7 @@ export default function BlackoutV2Page() {
             return (
               <span
                 key={idx}
-                style={{ minHeight: '28px', display: 'inline-flex', alignItems: 'center' }}
+                style={{ minHeight: '28px', display: 'flex', alignItems: 'center' }}
                 className={`px-3 py-1 rounded text-sm border-2 ${item.isPassed
                     ? item.player === 1
                       ? 'bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-600 text-gray-700 dark:text-gray-400 italic'
