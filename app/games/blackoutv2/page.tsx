@@ -70,10 +70,24 @@ export default function BlackoutV2Page() {
 
   // Force reflow on records container when words are added (fixes mobile Safari clipping)
   useEffect(() => {
-    const container = document.getElementById('records-container');
-    if (container && submittedWords.length > 0) {
-      container.getBoundingClientRect(); // triggers reflow
-    }
+    if (submittedWords.length === 0) return;
+
+    // Run after paint to fix mobile Safari flex-wrap clipping bug
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const container = document.getElementById('records-container');
+        if (container) {
+          // Force multiple layout calculations to ensure reflow
+          void container.offsetHeight;
+          void container.getBoundingClientRect();
+
+          // Also force reflow on each badge
+          container.querySelectorAll('span').forEach((badge) => {
+            void badge.offsetHeight;
+          });
+        }
+      });
+    });
   }, [submittedWords]);
 
   // Update current turn time every 100ms and check for auto-pass
@@ -591,7 +605,8 @@ export default function BlackoutV2Page() {
             return (
               <span
                 key={idx}
-                className={`inline-block px-3 py-1 rounded text-sm border-2 leading-normal ${item.isPassed
+                style={{ minHeight: '28px', display: 'inline-flex', alignItems: 'center' }}
+                className={`px-3 py-1 rounded text-sm border-2 ${item.isPassed
                     ? item.player === 1
                       ? 'bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-600 text-gray-700 dark:text-gray-400 italic'
                       : 'bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-600 text-gray-700 dark:text-gray-400 italic'
