@@ -582,7 +582,7 @@ export default function BlackoutV2Page() {
       {/* Records section below the grid */}
       <div className="mt-6 pb-20 text-center relative" style={{ zIndex: 20 }}>
         <p className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">Records:</p>
-        <div id="records-container" className="flex flex-wrap gap-2 justify-center items-start px-4 py-1 min-h-[2rem]">
+        <div id="records-container" className="flex flex-wrap gap-2 justify-center items-start content-start px-4 py-1">
           {submittedWords.map((item, idx) => {
             const baseScore = item.isPassed ? 0 : calculateScore(item.word);
             const lengthBonus = item.isPassed ? 0 : item.word.length;
@@ -591,7 +591,7 @@ export default function BlackoutV2Page() {
             return (
               <span
                 key={idx}
-                className={`inline-block px-3 py-1 rounded text-sm border-2 ${item.isPassed
+                className={`inline-block px-3 py-1 rounded text-sm border-2 leading-normal ${item.isPassed
                     ? item.player === 1
                       ? 'bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-600 text-gray-700 dark:text-gray-400 italic'
                       : 'bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-600 text-gray-700 dark:text-gray-400 italic'
