@@ -68,6 +68,14 @@ export default function BlackoutV2Page() {
     setGrid(generateRandomGrid());
   }, []);
 
+  // Force reflow on records container when words are added (fixes mobile Safari clipping)
+  useEffect(() => {
+    const container = document.getElementById('records-container');
+    if (container && submittedWords.length > 0) {
+      container.getBoundingClientRect(); // triggers reflow
+    }
+  }, [submittedWords]);
+
   // Update current turn time every 100ms and check for auto-pass
   useEffect(() => {
     if (isPaused || gameEnded) return;
@@ -574,7 +582,7 @@ export default function BlackoutV2Page() {
       {/* Records section below the grid */}
       <div className="mt-6 pb-20 text-center relative" style={{ zIndex: 20 }}>
         <p className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">Records:</p>
-        <div className="flex flex-wrap gap-2 justify-center px-4 min-h-[2rem]">
+        <div id="records-container" className="flex flex-wrap gap-2 justify-center items-start px-4 py-1 min-h-[2rem]">
           {submittedWords.map((item, idx) => {
             const baseScore = item.isPassed ? 0 : calculateScore(item.word);
             const lengthBonus = item.isPassed ? 0 : item.word.length;
