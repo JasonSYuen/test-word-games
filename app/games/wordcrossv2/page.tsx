@@ -494,13 +494,14 @@ export default function WordCrossV2Page() {
 
         {/* 5x5 Grid */}
         <div className="mb-6 md:mb-12 flex flex-col md:flex-row justify-center gap-4 md:gap-8">
-          <div>
-            <p className="text-sm sm:text-base md:text-lg font-semibold mb-2 md:mb-3 text-center">Your Grid</p>
-            <div className="grid grid-cols-5 gap-2 max-w-xs sm:max-w-sm md:max-w-md mx-auto">
+          {/* Mobile Grid - Compact */}
+          <div className="md:hidden">
+            <p className="text-sm font-semibold mb-2 text-center">Your Grid</p>
+            <div className="grid grid-cols-5 gap-2 max-w-xs mx-auto">
               {grid.map((row, rowIndex) =>
                 row.map((letter, colIndex) => (
                   <div
-                    key={`${rowIndex}-${colIndex}`}
+                    key={`mobile-${rowIndex}-${colIndex}`}
                     data-grid-row={rowIndex}
                     data-grid-col={colIndex}
                     draggable={letter !== ''}
@@ -510,21 +511,15 @@ export default function WordCrossV2Page() {
                     onTouchStart={() => handleTouchStart('grid', undefined, rowIndex, colIndex)}
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
-                    onDoubleClick={() => {
-                      // Desktop: double-click to remove
-                      if (letter !== '') {
-                        removeFromGrid(rowIndex, colIndex);
-                      }
-                    }}
                     className={`aspect-square rounded border-2 flex flex-col items-center justify-center relative touch-none ${
                       letter === ''
                         ? 'bg-gray-100 border-gray-400 border-dashed'
-                        : 'bg-white border-blue-400 cursor-move hover:shadow-lg hover:scale-105 transition-all'
+                        : 'bg-white border-blue-400 cursor-move active:shadow-lg active:scale-105 transition-all'
                     }`}
                   >
-                    <span className="text-base sm:text-lg md:text-2xl font-bold text-gray-800">{letter}</span>
+                    <span className="text-lg font-bold text-gray-800">{letter}</span>
                     {letter && (
-                      <span className="text-[9px] sm:text-[10px] md:text-xs absolute bottom-1 right-1 text-gray-600">
+                      <span className="text-[9px] absolute bottom-1 right-1 text-gray-600">
                         {letterPoints[letter]}
                       </span>
                     )}
@@ -534,19 +529,79 @@ export default function WordCrossV2Page() {
             </div>
           </div>
 
-          {/* Solution Grid (only show if enabled) */}
+          {/* Desktop Grid - Larger */}
+          <div className="hidden md:block">
+            <p className="text-xl font-semibold mb-4 text-center">Your Grid</p>
+            <div className="grid grid-cols-5 gap-3">
+              {grid.map((row, rowIndex) =>
+                row.map((letter, colIndex) => (
+                  <div
+                    key={`desktop-${rowIndex}-${colIndex}`}
+                    data-grid-row={rowIndex}
+                    data-grid-col={colIndex}
+                    draggable={letter !== ''}
+                    onDragStart={() => handleDragStart('grid', undefined, rowIndex, colIndex)}
+                    onDragOver={handleDragOver}
+                    onDrop={() => handleDropOnGrid(rowIndex, colIndex)}
+                    onDoubleClick={() => {
+                      // Desktop: double-click to remove
+                      if (letter !== '') {
+                        removeFromGrid(rowIndex, colIndex);
+                      }
+                    }}
+                    className={`w-20 h-20 rounded-lg border-2 flex flex-col items-center justify-center relative ${
+                      letter === ''
+                        ? 'bg-gray-100 border-gray-400 border-dashed'
+                        : 'bg-white border-blue-400 cursor-move hover:shadow-lg hover:scale-105 transition-all'
+                    }`}
+                  >
+                    <span className="text-3xl font-bold text-gray-800">{letter}</span>
+                    {letter && (
+                      <span className="text-sm absolute bottom-1.5 right-1.5 text-gray-600">
+                        {letterPoints[letter]}
+                      </span>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Solution Grid (only show if enabled) - Mobile */}
           {showSolution && hiddenSolution && (
-            <div>
-              <p className="text-sm sm:text-base md:text-lg font-semibold mb-2 md:mb-3 text-center text-yellow-600">Solution</p>
-              <div className="grid grid-cols-5 gap-2 max-w-xs sm:max-w-sm md:max-w-md mx-auto">
+            <div className="md:hidden mt-6">
+              <p className="text-sm font-semibold mb-2 text-center text-yellow-600">Solution</p>
+              <div className="grid grid-cols-5 gap-2 max-w-xs mx-auto">
                 {hiddenSolution.map((row, rowIndex) =>
                   row.map((letter, colIndex) => (
                     <div
-                      key={`sol-${rowIndex}-${colIndex}`}
+                      key={`sol-mobile-${rowIndex}-${colIndex}`}
                       className="aspect-square rounded border-2 border-yellow-500 bg-yellow-50 flex flex-col items-center justify-center relative"
                     >
-                      <span className="text-base sm:text-lg md:text-2xl font-bold text-gray-800">{letter}</span>
-                      <span className="text-[9px] sm:text-[10px] md:text-xs absolute bottom-1 right-1 text-gray-600">
+                      <span className="text-lg font-bold text-gray-800">{letter}</span>
+                      <span className="text-[9px] absolute bottom-1 right-1 text-gray-600">
+                        {letterPoints[letter]}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Solution Grid (only show if enabled) - Desktop */}
+          {showSolution && hiddenSolution && (
+            <div className="hidden md:block">
+              <p className="text-xl font-semibold mb-4 text-center text-yellow-600">Solution</p>
+              <div className="grid grid-cols-5 gap-3">
+                {hiddenSolution.map((row, rowIndex) =>
+                  row.map((letter, colIndex) => (
+                    <div
+                      key={`sol-desktop-${rowIndex}-${colIndex}`}
+                      className="w-20 h-20 rounded-lg border-2 border-yellow-500 bg-yellow-50 flex flex-col items-center justify-center relative"
+                    >
+                      <span className="text-3xl font-bold text-gray-800">{letter}</span>
+                      <span className="text-sm absolute bottom-1.5 right-1.5 text-gray-600">
                         {letterPoints[letter]}
                       </span>
                     </div>
