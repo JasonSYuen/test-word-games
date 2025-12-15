@@ -11,6 +11,9 @@ const allWords = [...words10, ...words20, ...words35, ...words40, ...words50, ..
 // Create a Set for fast word lookup - O(1)
 export const validWords = new Set(allWords.map(w => w.toLowerCase()));
 
+// Export most common words (frequency 10, 20, and 35) for crossword generation
+export const commonWords = new Set([...words10, ...words20, ...words35].map(w => w.toLowerCase()));
+
 // Scrabble letter point values
 export const letterPoints: { [key: string]: number } = {
   'A': 1, 'B': 3, 'C': 3, 'D': 2, 'E': 1, 'F': 4, 'G': 2, 'H': 4,
