@@ -148,7 +148,31 @@ export default function HomePage() {
             </div>
           </Link>
 
-          {/* Game 6 - Librarian's Tower */}
+          {/* Game 6 - Word Cross V2 */}
+          <Link href="/games/wordcrossv2">
+            <div className="bg-white rounded-2xl p-8 shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all cursor-pointer">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-3xl font-bold text-gray-800">Word Cross V2</h2>
+                <div className="text-4xl">📝✨</div>
+              </div>
+              <p className="text-gray-600 mb-4">
+                Enhanced crossword builder with new features!
+              </p>
+              <ul className="space-y-2 text-sm text-gray-700 mb-6">
+                <li>✓ 5x5 grid gameplay</li>
+                <li>✓ 25-card deck</li>
+                <li>✓ 10-tile storage bench</li>
+                <li>✓ Crossword validation</li>
+              </ul>
+              <div className="bg-pink-500 text-white text-center py-3 rounded-lg font-semibold hover:bg-pink-600 transition-colors">
+                Play Word Cross V2
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8 mb-8">
+          {/* Game 7 - Librarian's Tower */}
           <Link href="/games/librarianstower">
             <div className="bg-white rounded-2xl p-8 shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all cursor-pointer">
               <div className="flex items-center justify-between mb-4">

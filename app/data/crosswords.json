@@ -1,0 +1,1122 @@
+[
+  {
+    "id": 1,
+    "date": "2024-01-01",
+    "grid": [
+      [
+        "S",
+        "A",
+        "V",
+        "E",
+        "R"
+      ],
+      [
+        "E",
+        "R",
+        "O",
+        "D",
+        "E"
+      ],
+      [
+        "D",
+        "O",
+        "D",
+        "G",
+        "E"
+      ],
+      [
+        "A",
+        "S",
+        "K",
+        "E",
+        "D"
+      ],
+      [
+        "N",
+        "E",
+        "A",
+        "R",
+        "S"
+      ]
+    ],
+    "horizontalWords": [
+      "SAVER",
+      "ERODE",
+      "DODGE",
+      "ASKED",
+      "NEARS"
+    ],
+    "verticalWords": [
+      "SEDAN",
+      "AROSE",
+      "VODKA",
+      "EDGER",
+      "REEDS"
+    ],
+    "totalScore": 37
+  },
+  {
+    "id": 2,
+    "date": "2024-01-02",
+    "grid": [
+      [
+        "C",
+        "A",
+        "G",
+        "E",
+        "D"
+      ],
+      [
+        "L",
+        "U",
+        "N",
+        "G",
+        "E"
+      ],
+      [
+        "A",
+        "D",
+        "A",
+        "G",
+        "E"
+      ],
+      [
+        "S",
+        "I",
+        "R",
+        "E",
+        "D"
+      ],
+      [
+        "H",
+        "O",
+        "L",
+        "D",
+        "S"
+      ]
+    ],
+    "horizontalWords": [
+      "CAGED",
+      "LUNGE",
+      "ADAGE",
+      "SIRED",
+      "HOLDS"
+    ],
+    "verticalWords": [
+      "CLASH",
+      "AUDIO",
+      "GNARL",
+      "EGGED",
+      "DEEDS"
+    ],
+    "totalScore": 37
+  },
+  {
+    "id": 3,
+    "date": "2024-01-03",
+    "grid": [
+      [
+        "B",
+        "R",
+        "U",
+        "T",
+        "E"
+      ],
+      [
+        "O",
+        "A",
+        "R",
+        "E",
+        "D"
+      ],
+      [
+        "O",
+        "W",
+        "I",
+        "N",
+        "G"
+      ],
+      [
+        "S",
+        "E",
+        "N",
+        "S",
+        "E"
+      ],
+      [
+        "T",
+        "R",
+        "E",
+        "E",
+        "S"
+      ]
+    ],
+    "horizontalWords": [
+      "BRUTE",
+      "OARED",
+      "OWING",
+      "SENSE",
+      "TREES"
+    ],
+    "verticalWords": [
+      "BOOST",
+      "RAWER",
+      "URINE",
+      "TENSE",
+      "EDGES"
+    ],
+    "totalScore": 32
+  },
+  {
+    "id": 4,
+    "date": "2024-01-04",
+    "grid": [
+      [
+        "S",
+        "H",
+        "O",
+        "R",
+        "T"
+      ],
+      [
+        "T",
+        "O",
+        "W",
+        "E",
+        "R"
+      ],
+      [
+        "O",
+        "L",
+        "I",
+        "V",
+        "E"
+      ],
+      [
+        "V",
+        "E",
+        "N",
+        "U",
+        "E"
+      ],
+      [
+        "E",
+        "D",
+        "G",
+        "E",
+        "D"
+      ]
+    ],
+    "horizontalWords": [
+      "SHORT",
+      "TOWER",
+      "OLIVE",
+      "VENUE",
+      "EDGED"
+    ],
+    "verticalWords": [
+      "STOVE",
+      "HOLED",
+      "OWING",
+      "REVUE",
+      "TREED"
+    ],
+    "totalScore": 40
+  },
+  {
+    "id": 5,
+    "date": "2024-01-05",
+    "grid": [
+      [
+        "S",
+        "M",
+        "E",
+        "A",
+        "R"
+      ],
+      [
+        "P",
+        "O",
+        "L",
+        "I",
+        "O"
+      ],
+      [
+        "A",
+        "R",
+        "O",
+        "M",
+        "A"
+      ],
+      [
+        "R",
+        "A",
+        "P",
+        "E",
+        "D"
+      ],
+      [
+        "S",
+        "L",
+        "E",
+        "D",
+        "S"
+      ]
+    ],
+    "horizontalWords": [
+      "SMEAR",
+      "POLIO",
+      "AROMA",
+      "RAPED",
+      "SLEDS"
+    ],
+    "verticalWords": [
+      "SPARS",
+      "MORAL",
+      "ELOPE",
+      "AIMED",
+      "ROADS"
+    ],
+    "totalScore": 35
+  },
+  {
+    "id": 6,
+    "date": "2024-01-06",
+    "grid": [
+      [
+        "F",
+        "U",
+        "S",
+        "E",
+        "S"
+      ],
+      [
+        "A",
+        "S",
+        "I",
+        "D",
+        "E"
+      ],
+      [
+        "M",
+        "A",
+        "N",
+        "G",
+        "E"
+      ],
+      [
+        "E",
+        "G",
+        "G",
+        "E",
+        "D"
+      ],
+      [
+        "D",
+        "E",
+        "E",
+        "D",
+        "S"
+      ]
+    ],
+    "horizontalWords": [
+      "FUSES",
+      "ASIDE",
+      "MANGE",
+      "EGGED",
+      "DEEDS"
+    ],
+    "verticalWords": [
+      "FAMED",
+      "USAGE",
+      "SINGE",
+      "EDGED",
+      "SEEDS"
+    ],
+    "totalScore": 37
+  },
+  {
+    "id": 7,
+    "date": "2024-01-07",
+    "grid": [
+      [
+        "P",
+        "A",
+        "S",
+        "T",
+        "E"
+      ],
+      [
+        "A",
+        "W",
+        "A",
+        "R",
+        "D"
+      ],
+      [
+        "R",
+        "A",
+        "D",
+        "I",
+        "I"
+      ],
+      [
+        "E",
+        "R",
+        "E",
+        "C",
+        "T"
+      ],
+      [
+        "D",
+        "E",
+        "S",
+        "K",
+        "S"
+      ]
+    ],
+    "horizontalWords": [
+      "PASTE",
+      "AWARD",
+      "RADII",
+      "ERECT",
+      "DESKS"
+    ],
+    "verticalWords": [
+      "PARED",
+      "AWARE",
+      "SADES",
+      "TRICK",
+      "EDITS"
+    ],
+    "totalScore": 39
+  },
+  {
+    "id": 8,
+    "date": "2024-01-08",
+    "grid": [
+      [
+        "B",
+        "E",
+        "A",
+        "D",
+        "S"
+      ],
+      [
+        "A",
+        "L",
+        "G",
+        "A",
+        "E"
+      ],
+      [
+        "S",
+        "U",
+        "I",
+        "T",
+        "E"
+      ],
+      [
+        "I",
+        "D",
+        "L",
+        "E",
+        "D"
+      ],
+      [
+        "N",
+        "E",
+        "E",
+        "D",
+        "S"
+      ]
+    ],
+    "horizontalWords": [
+      "BEADS",
+      "ALGAE",
+      "SUITE",
+      "IDLED",
+      "NEEDS"
+    ],
+    "verticalWords": [
+      "BASIN",
+      "ELUDE",
+      "AGILE",
+      "DATED",
+      "SEEDS"
+    ],
+    "totalScore": 32
+  },
+  {
+    "id": 9,
+    "date": "2024-01-09",
+    "grid": [
+      [
+        "C",
+        "E",
+        "D",
+        "E",
+        "S"
+      ],
+      [
+        "O",
+        "X",
+        "I",
+        "D",
+        "E"
+      ],
+      [
+        "M",
+        "I",
+        "M",
+        "I",
+        "C"
+      ],
+      [
+        "E",
+        "L",
+        "E",
+        "C",
+        "T"
+      ],
+      [
+        "T",
+        "E",
+        "S",
+        "T",
+        "S"
+      ]
+    ],
+    "horizontalWords": [
+      "CEDES",
+      "OXIDE",
+      "MIMIC",
+      "ELECT",
+      "TESTS"
+    ],
+    "verticalWords": [
+      "COMET",
+      "EXILE",
+      "DIMES",
+      "EDICT",
+      "SECTS"
+    ],
+    "totalScore": 44
+  },
+  {
+    "id": 10,
+    "date": "2024-01-10",
+    "grid": [
+      [
+        "T",
+        "R",
+        "I",
+        "P",
+        "S"
+      ],
+      [
+        "R",
+        "U",
+        "R",
+        "A",
+        "L"
+      ],
+      [
+        "A",
+        "D",
+        "A",
+        "G",
+        "E"
+      ],
+      [
+        "M",
+        "E",
+        "T",
+        "E",
+        "D"
+      ],
+      [
+        "P",
+        "R",
+        "E",
+        "S",
+        "S"
+      ]
+    ],
+    "horizontalWords": [
+      "TRIPS",
+      "RURAL",
+      "ADAGE",
+      "METED",
+      "PRESS"
+    ],
+    "verticalWords": [
+      "TRAMP",
+      "RUDER",
+      "IRATE",
+      "PAGES",
+      "SLEDS"
+    ],
+    "totalScore": 34
+  },
+  {
+    "id": 11,
+    "date": "2024-01-11",
+    "grid": [
+      [
+        "F",
+        "U",
+        "M",
+        "E",
+        "S"
+      ],
+      [
+        "A",
+        "S",
+        "I",
+        "D",
+        "E"
+      ],
+      [
+        "L",
+        "U",
+        "N",
+        "G",
+        "E"
+      ],
+      [
+        "L",
+        "A",
+        "C",
+        "E",
+        "D"
+      ],
+      [
+        "S",
+        "L",
+        "E",
+        "D",
+        "S"
+      ]
+    ],
+    "horizontalWords": [
+      "FUMES",
+      "ASIDE",
+      "LUNGE",
+      "LACED",
+      "SLEDS"
+    ],
+    "verticalWords": [
+      "FALLS",
+      "USUAL",
+      "MINCE",
+      "EDGED",
+      "SEEDS"
+    ],
+    "totalScore": 36
+  },
+  {
+    "id": 12,
+    "date": "2024-01-12",
+    "grid": [
+      [
+        "S",
+        "H",
+        "E",
+        "A",
+        "F"
+      ],
+      [
+        "C",
+        "E",
+        "L",
+        "L",
+        "O"
+      ],
+      [
+        "R",
+        "A",
+        "V",
+        "E",
+        "N"
+      ],
+      [
+        "A",
+        "V",
+        "E",
+        "R",
+        "T"
+      ],
+      [
+        "P",
+        "E",
+        "S",
+        "T",
+        "S"
+      ]
+    ],
+    "horizontalWords": [
+      "SHEAF",
+      "CELLO",
+      "RAVEN",
+      "AVERT",
+      "PESTS"
+    ],
+    "verticalWords": [
+      "SCRAP",
+      "HEAVE",
+      "ELVES",
+      "ALERT",
+      "FONTS"
+    ],
+    "totalScore": 41
+  },
+  {
+    "id": 13,
+    "date": "2024-01-13",
+    "grid": [
+      [
+        "L",
+        "A",
+        "M",
+        "E",
+        "R"
+      ],
+      [
+        "U",
+        "S",
+        "A",
+        "G",
+        "E"
+      ],
+      [
+        "T",
+        "I",
+        "N",
+        "G",
+        "E"
+      ],
+      [
+        "E",
+        "D",
+        "G",
+        "E",
+        "D"
+      ],
+      [
+        "S",
+        "E",
+        "E",
+        "D",
+        "S"
+      ]
+    ],
+    "horizontalWords": [
+      "LAMER",
+      "USAGE",
+      "TINGE",
+      "EDGED",
+      "SEEDS"
+    ],
+    "verticalWords": [
+      "LUTES",
+      "ASIDE",
+      "MANGE",
+      "EGGED",
+      "REEDS"
+    ],
+    "totalScore": 33
+  },
+  {
+    "id": 14,
+    "date": "2024-01-14",
+    "grid": [
+      [
+        "L",
+        "U",
+        "R",
+        "E",
+        "D"
+      ],
+      [
+        "A",
+        "S",
+        "I",
+        "D",
+        "E"
+      ],
+      [
+        "B",
+        "A",
+        "D",
+        "G",
+        "E"
+      ],
+      [
+        "E",
+        "G",
+        "G",
+        "E",
+        "D"
+      ],
+      [
+        "L",
+        "E",
+        "E",
+        "R",
+        "S"
+      ]
+    ],
+    "horizontalWords": [
+      "LURED",
+      "ASIDE",
+      "BADGE",
+      "EGGED",
+      "LEERS"
+    ],
+    "verticalWords": [
+      "LABEL",
+      "USAGE",
+      "RIDGE",
+      "EDGER",
+      "DEEDS"
+    ],
+    "totalScore": 34
+  },
+  {
+    "id": 15,
+    "date": "2024-01-15",
+    "grid": [
+      [
+        "C",
+        "H",
+        "A",
+        "M",
+        "P"
+      ],
+      [
+        "R",
+        "E",
+        "P",
+        "E",
+        "L"
+      ],
+      [
+        "U",
+        "L",
+        "T",
+        "R",
+        "A"
+      ],
+      [
+        "S",
+        "L",
+        "E",
+        "E",
+        "T"
+      ],
+      [
+        "H",
+        "O",
+        "R",
+        "S",
+        "E"
+      ]
+    ],
+    "horizontalWords": [
+      "CHAMP",
+      "REPEL",
+      "ULTRA",
+      "SLEET",
+      "HORSE"
+    ],
+    "verticalWords": [
+      "CRUSH",
+      "HELLO",
+      "APTER",
+      "MERES",
+      "PLATE"
+    ],
+    "totalScore": 39
+  },
+  {
+    "id": 16,
+    "date": "2024-01-16",
+    "grid": [
+      [
+        "C",
+        "L",
+        "O",
+        "V",
+        "E"
+      ],
+      [
+        "H",
+        "A",
+        "L",
+        "E",
+        "D"
+      ],
+      [
+        "A",
+        "X",
+        "I",
+        "N",
+        "G"
+      ],
+      [
+        "R",
+        "E",
+        "V",
+        "U",
+        "E"
+      ],
+      [
+        "T",
+        "R",
+        "E",
+        "E",
+        "D"
+      ]
+    ],
+    "horizontalWords": [
+      "CLOVE",
+      "HALED",
+      "AXING",
+      "REVUE",
+      "TREED"
+    ],
+    "verticalWords": [
+      "CHART",
+      "LAXER",
+      "OLIVE",
+      "VENUE",
+      "EDGED"
+    ],
+    "totalScore": 46
+  },
+  {
+    "id": 17,
+    "date": "2024-01-17",
+    "grid": [
+      [
+        "C",
+        "A",
+        "T",
+        "C",
+        "H"
+      ],
+      [
+        "O",
+        "P",
+        "E",
+        "R",
+        "A"
+      ],
+      [
+        "U",
+        "P",
+        "P",
+        "E",
+        "R"
+      ],
+      [
+        "P",
+        "L",
+        "E",
+        "A",
+        "T"
+      ],
+      [
+        "S",
+        "E",
+        "E",
+        "M",
+        "S"
+      ]
+    ],
+    "horizontalWords": [
+      "CATCH",
+      "OPERA",
+      "UPPER",
+      "PLEAT",
+      "SEEMS"
+    ],
+    "verticalWords": [
+      "COUPS",
+      "APPLE",
+      "TEPEE",
+      "CREAM",
+      "HARTS"
+    ],
+    "totalScore": 42
+  },
+  {
+    "id": 18,
+    "date": "2024-01-18",
+    "grid": [
+      [
+        "T",
+        "H",
+        "A",
+        "W",
+        "S"
+      ],
+      [
+        "E",
+        "A",
+        "S",
+        "E",
+        "L"
+      ],
+      [
+        "A",
+        "B",
+        "I",
+        "D",
+        "E"
+      ],
+      [
+        "R",
+        "I",
+        "D",
+        "G",
+        "E"
+      ],
+      [
+        "S",
+        "T",
+        "E",
+        "E",
+        "P"
+      ]
+    ],
+    "horizontalWords": [
+      "THAWS",
+      "EASEL",
+      "ABIDE",
+      "RIDGE",
+      "STEEP"
+    ],
+    "verticalWords": [
+      "TEARS",
+      "HABIT",
+      "ASIDE",
+      "WEDGE",
+      "SLEEP"
+    ],
+    "totalScore": 38
+  },
+  {
+    "id": 19,
+    "date": "2024-01-19",
+    "grid": [
+      [
+        "C",
+        "A",
+        "B",
+        "I",
+        "N"
+      ],
+      [
+        "A",
+        "L",
+        "O",
+        "N",
+        "E"
+      ],
+      [
+        "R",
+        "I",
+        "D",
+        "E",
+        "S"
+      ],
+      [
+        "A",
+        "V",
+        "E",
+        "R",
+        "T"
+      ],
+      [
+        "T",
+        "E",
+        "S",
+        "T",
+        "S"
+      ]
+    ],
+    "horizontalWords": [
+      "CABIN",
+      "ALONE",
+      "RIDES",
+      "AVERT",
+      "TESTS"
+    ],
+    "verticalWords": [
+      "CARAT",
+      "ALIVE",
+      "BODES",
+      "INERT",
+      "NESTS"
+    ],
+    "totalScore": 33
+  },
+  {
+    "id": 20,
+    "date": "2024-01-20",
+    "grid": [
+      [
+        "M",
+        "A",
+        "K",
+        "E",
+        "S"
+      ],
+      [
+        "A",
+        "T",
+        "O",
+        "N",
+        "E"
+      ],
+      [
+        "S",
+        "T",
+        "A",
+        "T",
+        "E"
+      ],
+      [
+        "T",
+        "I",
+        "L",
+        "E",
+        "D"
+      ],
+      [
+        "S",
+        "C",
+        "A",
+        "R",
+        "S"
+      ]
+    ],
+    "horizontalWords": [
+      "MAKES",
+      "ATONE",
+      "STATE",
+      "TILED",
+      "SCARS"
+    ],
+    "verticalWords": [
+      "MASTS",
+      "ATTIC",
+      "KOALA",
+      "ENTER",
+      "SEEDS"
+    ],
+    "totalScore": 34
+  }
+]

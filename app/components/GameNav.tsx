@@ -1,7 +1,7 @@
 'use client'
 
 interface GameNavProps {
-  currentGame: 'blackout' | 'blackoutv2' | 'battle' | 'singleplayerbattle' | 'deck' | 'wordcross' | 'librarianstower';
+  currentGame: 'blackout' | 'blackoutv2' | 'battle' | 'singleplayerbattle' | 'deck' | 'wordcross' | 'wordcrossv2' | 'librarianstower';
 }
 
 export default function GameNav({ currentGame }: GameNavProps) {
@@ -24,6 +24,8 @@ export default function GameNav({ currentGame }: GameNavProps) {
             window.location.href = '/games/deck';
           } else if (value === 'wordcross') {
             window.location.href = '/games/wordcross';
+          } else if (value === 'wordcrossv2') {
+            window.location.href = '/games/wordcrossv2';
           } else if (value === 'librarianstower') {
             window.location.href = '/games/librarianstower';
           }
@@ -38,6 +40,7 @@ export default function GameNav({ currentGame }: GameNavProps) {
         <option value="singleplayerbattle">AI Battle</option>
         <option value="deck">Deck Mode</option>
         <option value="wordcross">Word Cross</option>
+        <option value="wordcrossv2">Word Cross V2</option>
         <option value="librarianstower">Librarian's Tower</option>
       </select>
     </div>
