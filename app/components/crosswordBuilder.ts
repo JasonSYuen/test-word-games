@@ -259,7 +259,16 @@ export function generateCrossword(): CrosswordSolution | null {
       }
     }
 
-    return { grid, horizontalWords, verticalWords, totalScore };
+    // Generate a temporary ID and date for live-generated crosswords
+    const now = new Date();
+    return {
+      id: 0,
+      date: now.toISOString().split('T')[0],
+      grid,
+      horizontalWords,
+      verticalWords,
+      totalScore
+    };
   }
 
   return null;
