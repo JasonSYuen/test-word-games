@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from 'next/link';
 import GameNav from '@/app/components/GameNav';
+import WordDefinition from '@/app/components/WordDefinition';
 import { calculateScore, letterPoints, isValidWord } from '@/app/components/wordValidation';
 import { getRandomCrossword, getDailyCrossword, extractDeckFromCrossword, type CrosswordSolution } from '@/app/components/crosswordBuilder';
 
@@ -165,6 +166,7 @@ export default function WordCrossV2Page() {
 
   // Crossword solution state
   const [hiddenSolution, setHiddenSolution] = useState<string[][] | null>(null);
+  const [solutionWords, setSolutionWords] = useState<string[]>([]);
   const [targetScore, setTargetScore] = useState<number>(0);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
@@ -193,6 +195,7 @@ export default function WordCrossV2Page() {
         const sortedDeck = newDeck.sort((a, b) => a.localeCompare(b));
 
         setHiddenSolution(solution.grid);
+        setSolutionWords([...solution.horizontalWords, ...solution.verticalWords]);
         setTargetScore(solution.totalScore);
         setDeck(sortedDeck);
         setGrid(Array(5).fill(null).map(() => Array(5).fill('')));
@@ -205,6 +208,7 @@ export default function WordCrossV2Page() {
         // Fallback to random deck if generation fails
         setDeck(generateDeck());
         setHiddenSolution(null);
+        setSolutionWords([]);
         setTargetScore(0);
         setShowSolution(false);
         setCurrentPuzzleInfo(null);
@@ -453,11 +457,19 @@ export default function WordCrossV2Page() {
           {gridValidation.validWords.length > 0 && (
             <div className="mt-2">
               <p className="text-xs sm:text-sm text-green-600 font-semibold">Valid words in grid:</p>
-              <div className="flex flex-wrap gap-1 sm:gap-2 justify-center mt-1 px-2">
+              <div className="flex flex-col gap-2 mt-1 px-2 max-w-2xl mx-auto">
                 {gridValidation.validWords.map((word, idx) => (
-                  <span key={idx} className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-green-100 text-green-700 rounded text-xs sm:text-sm">
-                    {word.toUpperCase()} ({calculateScore(word)})
-                  </span>
+                  <div key={idx} className="bg-green-50 border border-green-200 rounded-lg p-2 sm:p-3 text-left">
+                    <div className="flex items-baseline gap-2 mb-2">
+                      <span className="text-sm sm:text-base font-bold text-green-700">
+                        {word.toUpperCase()}
+                      </span>
+                      <span className="text-xs sm:text-sm text-green-600">
+                        ({calculateScore(word)} pts)
+                      </span>
+                    </div>
+                    <WordDefinition word={word} showAllMeanings={true} />
+                  </div>
                 ))}
               </div>
             </div>
@@ -641,6 +653,54 @@ export default function WordCrossV2Page() {
             })}
           </div>
         </div>
+
+        {/* Clues Section - 10 Solution Words */}
+        {solutionWords.length > 0 && (
+          <div className="mt-8 mb-6 md:mb-8">
+            <h2 className="text-lg sm:text-xl font-bold mb-3 text-blue-600">Clues</h2>
+            <div className="grid md:grid-cols-2 gap-3 px-2 max-w-4xl mx-auto">
+              {/* Horizontal Words */}
+              <div>
+                <p className="text-sm font-semibold mb-2 text-gray-700">Across:</p>
+                <div className="flex flex-col gap-2">
+                  {solutionWords.slice(0, 5).map((word, idx) => (
+                    <div key={`h-${idx}`} className="bg-blue-50 border border-blue-200 rounded-lg p-2 text-left">
+                      <div className="flex items-baseline gap-2 mb-1">
+                        <span className="text-xs sm:text-sm font-bold text-blue-700">
+                          {idx + 1}.
+                        </span>
+                        <span className="text-xs sm:text-sm text-blue-600">
+                          ({word.length} letters, {calculateScore(word)} pts)
+                        </span>
+                      </div>
+                      <WordDefinition word={word} showAllMeanings={false} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Vertical Words */}
+              <div>
+                <p className="text-sm font-semibold mb-2 text-gray-700">Down:</p>
+                <div className="flex flex-col gap-2">
+                  {solutionWords.slice(5, 10).map((word, idx) => (
+                    <div key={`v-${idx}`} className="bg-blue-50 border border-blue-200 rounded-lg p-2 text-left">
+                      <div className="flex items-baseline gap-2 mb-1">
+                        <span className="text-xs sm:text-sm font-bold text-blue-700">
+                          {idx + 1}.
+                        </span>
+                        <span className="text-xs sm:text-sm text-blue-600">
+                          ({word.length} letters, {calculateScore(word)} pts)
+                        </span>
+                      </div>
+                      <WordDefinition word={word} showAllMeanings={false} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center mt-6 md:mt-8 px-4">
           <button
