@@ -1,7 +1,7 @@
 'use client'
 
 interface GameNavProps {
-  currentGame: 'blackout' | 'blackoutv2' | 'battle' | 'singleplayerbattle' | 'deck' | 'wordcross' | 'wordcrossv2' | 'librarianstower';
+  currentGame: 'blackout' | 'blackoutv2' | 'battle' | 'singleplayerbattle' | 'deck' | 'wordcross' | 'wordcrossv2' | 'librarianstower' | 'inkpots';
 }
 
 export default function GameNav({ currentGame }: GameNavProps) {
@@ -28,6 +28,8 @@ export default function GameNav({ currentGame }: GameNavProps) {
             window.location.href = '/games/wordcross';
           } else if (value === 'librarianstower') {
             window.location.href = '/games/librarianstower';
+          } else if (value === 'inkpots') {
+            window.location.href = '/games/inkpots';
           }
         }}
         className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 font-semibold cursor-pointer"
@@ -42,6 +44,7 @@ export default function GameNav({ currentGame }: GameNavProps) {
         <option value="deck">Deck Mode</option>
         <option value="wordcross">Word Cross</option>
         <option value="librarianstower">Librarian's Tower</option>
+        <option value="inkpots">Inkpots</option>
       </select>
     </div>
   );
