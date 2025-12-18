@@ -163,7 +163,7 @@ export default function InkpotsPage() {
   const [currentChoices, setCurrentChoices] = useState<LetterCard[]>([]);
   const [gamePhase, setGamePhase] = useState<'draft-p1' | 'draft-p2' | 'play'>('draft-p1');
   const [currentPlayer, setCurrentPlayer] = useState<1 | 2>(1);
-  const [wordBar, setWordBar] = useState<LetterCard[]>(Array(10).fill(null));
+  const [wordBar, setWordBar] = useState<(LetterCard | null)[]>(Array(10).fill(null));
   const [usedDeckIndices, setUsedDeckIndices] = useState<Set<number>>(new Set());
   const [draggedFrom, setDraggedFrom] = useState<{type: 'deck' | 'wordBar', index: number} | null>(null);
   const [wordBarToDeck, setWordBarToDeck] = useState<Map<number, number>>(new Map());
