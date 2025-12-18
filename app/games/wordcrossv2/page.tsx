@@ -165,6 +165,7 @@ export default function WordCrossV2Page() {
 
   // Crossword solution state
   const [hiddenSolution, setHiddenSolution] = useState<string[][] | null>(null);
+  const [solutionWords, setSolutionWords] = useState<string[]>([]);
   const [targetScore, setTargetScore] = useState<number>(0);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
@@ -193,6 +194,7 @@ export default function WordCrossV2Page() {
         const sortedDeck = newDeck.sort((a, b) => a.localeCompare(b));
 
         setHiddenSolution(solution.grid);
+        setSolutionWords([...solution.horizontalWords, ...solution.verticalWords]);
         setTargetScore(solution.totalScore);
         setDeck(sortedDeck);
         setGrid(Array(5).fill(null).map(() => Array(5).fill('')));
@@ -205,6 +207,7 @@ export default function WordCrossV2Page() {
         // Fallback to random deck if generation fails
         setDeck(generateDeck());
         setHiddenSolution(null);
+        setSolutionWords([]);
         setTargetScore(0);
         setShowSolution(false);
         setCurrentPuzzleInfo(null);
@@ -455,7 +458,7 @@ export default function WordCrossV2Page() {
               <p className="text-xs sm:text-sm text-green-600 font-semibold">Valid words in grid:</p>
               <div className="flex flex-wrap gap-1 sm:gap-2 justify-center mt-1 px-2">
                 {gridValidation.validWords.map((word, idx) => (
-                  <span key={idx} className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-green-100 text-green-700 rounded text-xs sm:text-sm">
+                  <span key={idx} className="px-2 sm:px-3 py-1 bg-green-100 border border-green-300 text-green-700 rounded text-xs sm:text-sm font-semibold">
                     {word.toUpperCase()} ({calculateScore(word)})
                   </span>
                 ))}

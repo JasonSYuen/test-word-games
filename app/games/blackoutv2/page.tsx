@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from 'next/link';
 import GameNav from '@/app/components/GameNav';
+import WordDefinition from '@/app/components/WordDefinition';
 import { calculateScore, letterPoints } from '@/app/components/wordValidation';
 import { useWordValidation } from '@/app/components/useWordValidation';
 
@@ -59,6 +60,9 @@ export default function BlackoutV2Page() {
   const [player2Turns, setPlayer2Turns] = useState<number>(0);
   const [gameEnded, setGameEnded] = useState<boolean>(false);
   const maxTurnsPerPlayer = 6;
+
+  // Definition popup state
+  const [selectedWordIndex, setSelectedWordIndex] = useState<number | null>(null);
 
   // Use the custom validation hook
   const { isValid, score: currentScore } = useWordValidation(w);
@@ -590,24 +594,45 @@ export default function BlackoutV2Page() {
             const totalScore = baseScore + lengthBonus;
 
             return (
-              <span
-                key={idx}
-                style={{ height: '32px', display: 'inline-flex', alignItems: 'center' }}
-                className={`px-3 py-1 rounded text-sm border-2 ${item.isPassed
-                    ? item.player === 1
-                      ? 'bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-600 text-gray-700 dark:text-gray-400 italic'
-                      : 'bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-600 text-gray-700 dark:text-gray-400 italic'
-                    : item.player === 1
-                      ? 'bg-blue-100 dark:bg-blue-900 border-blue-500 dark:border-blue-400 text-gray-900 dark:text-gray-100'
-                      : 'bg-red-100 dark:bg-red-900 border-red-500 dark:border-red-400 text-gray-900 dark:text-gray-100'
-                  }`}
-              >
-                {item.isPassed ? (
-                  <>PASS <span className="font-mono text-xs opacity-75">{formatTime(item.turnTime)}</span></>
-                ) : (
-                  <>{item.word} ({totalScore}) <span className="font-mono text-xs opacity-75">{formatTime(item.turnTime)}</span></>
+              <div key={idx} className="relative">
+                <span
+                  onClick={() => !item.isPassed && setSelectedWordIndex(selectedWordIndex === idx ? null : idx)}
+                  style={{ height: '32px', display: 'inline-flex', alignItems: 'center' }}
+                  className={`px-3 py-1 rounded text-sm border-2 ${!item.isPassed ? 'cursor-pointer hover:opacity-80' : ''} ${item.isPassed
+                      ? item.player === 1
+                        ? 'bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-600 text-gray-700 dark:text-gray-400 italic'
+                        : 'bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-600 text-gray-700 dark:text-gray-400 italic'
+                      : item.player === 1
+                        ? 'bg-blue-100 dark:bg-blue-900 border-blue-500 dark:border-blue-400 text-gray-900 dark:text-gray-100'
+                        : 'bg-red-100 dark:bg-red-900 border-red-500 dark:border-red-400 text-gray-900 dark:text-gray-100'
+                    }`}
+                >
+                  {item.isPassed ? (
+                    <>PASS <span className="font-mono text-xs opacity-75">{formatTime(item.turnTime)}</span></>
+                  ) : (
+                    <>{item.word} ({totalScore}) <span className="font-mono text-xs opacity-75">{formatTime(item.turnTime)}</span></>
+                  )}
+                </span>
+
+                {/* Definition Popup */}
+                {!item.isPassed && selectedWordIndex === idx && (
+                  <div className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 w-64 sm:w-80 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-lg shadow-xl p-3 z-50">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="font-bold text-lg text-gray-900 dark:text-gray-100">{item.word}</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedWordIndex(null);
+                        }}
+                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-xl leading-none"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <WordDefinition word={item.word} showAllMeanings={false} />
+                  </div>
                 )}
-              </span>
+              </div>
             );
           })}
         </div>
