@@ -81,13 +81,17 @@ export default function BlackoutOnlineGame() {
 
   // Copy link to clipboard
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(shareableLink);
+    // Create guest link by replacing host=true with host=false
+    const guestLink = shareableLink.replace('host=true', 'host=false');
+    navigator.clipboard.writeText(guestLink);
     alert('Link copied! Share it with your opponent.');
   };
 
   // Initialize PeerJS
   useEffect(() => {
-    setShareableLink(window.location.href);
+    // For host, create a guest link to share
+    const link = window.location.href;
+    setShareableLink(isHost ? link.replace('host=true', 'host=false') : link);
 
     // Create peer with gameId as the peer ID (for host) or random ID (for guest)
     const peer = isHost ? new Peer(gameId) : new Peer();
@@ -105,28 +109,31 @@ export default function BlackoutOnlineGame() {
         setMyPlayerNumber(2);
         setConnectionStatus('Connecting to opponent...');
 
-        // Guest connects to host
-        const conn = peer.connect(gameId);
-        connectionRef.current = conn;
+        // Guest connects to host after a brief delay to ensure host is registered
+        setTimeout(() => {
+          console.log('Attempting to connect to host with ID:', gameId);
+          const conn = peer.connect(gameId, { reliable: true });
+          connectionRef.current = conn;
 
-        conn.on('open', () => {
-          console.log('Connected to host!');
-          setConnectionStatus('Connected! Waiting for game start...');
+          conn.on('open', () => {
+            console.log('Connected to host!');
+            setConnectionStatus('Connected! Waiting for game start...');
 
-          // Notify host that guest has joined
-          conn.send({ type: 'player-joined' });
-        });
+            // Notify host that guest has joined
+            conn.send({ type: 'player-joined' });
+          });
 
-        conn.on('data', handlePeerData);
+          conn.on('data', handlePeerData);
 
-        conn.on('close', () => {
-          setConnectionStatus('Connection lost');
-        });
+          conn.on('close', () => {
+            setConnectionStatus('Connection lost');
+          });
 
-        conn.on('error', (err) => {
-          console.error('Connection error:', err);
-          setConnectionStatus('Connection error');
-        });
+          conn.on('error', (err) => {
+            console.error('Connection error:', err);
+            setConnectionStatus(`Connection failed: ${err.type}. Make sure the host is connected and the game ID is correct.`);
+          });
+        }, 1000);
       }
     });
 
@@ -161,7 +168,19 @@ export default function BlackoutOnlineGame() {
 
     peer.on('error', (err) => {
       console.error('Peer error:', err);
-      setConnectionStatus(`Error: ${err.type}`);
+
+      if (err.type === 'unavailable-id' && isHost) {
+        // ID is taken, regenerate and redirect
+        setConnectionStatus('Game ID already in use, generating new one...');
+        const timestamp = Date.now().toString(36);
+        const random = Math.random().toString(36).substring(2, 7);
+        const newGameId = `${timestamp}-${random}`;
+        window.location.href = `/games/blackout-online/${newGameId}?host=true`;
+      } else if (err.type === 'peer-unavailable') {
+        setConnectionStatus('Host not found. Please check the game ID and make sure the host is connected.');
+      } else {
+        setConnectionStatus(`Error: ${err.type}`);
+      }
     });
 
     return () => {

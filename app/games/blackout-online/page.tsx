@@ -11,8 +11,10 @@ export default function BlackoutOnlineLobby() {
 
   const handleCreateGame = () => {
     setIsCreating(true);
-    // Generate a simple random game ID
-    const gameId = Math.random().toString(36).substring(2, 9);
+    // Generate a unique game ID with timestamp to avoid collisions
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substring(2, 7);
+    const gameId = `${timestamp}-${random}`;
     router.push(`/games/blackout-online/${gameId}?host=true`);
   };
 
