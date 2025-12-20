@@ -339,8 +339,8 @@ export default function BlackoutV2Page() {
             <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{player1Score}</p>
             <p className="text-xs font-mono mt-1 text-gray-600 dark:text-gray-400">Total: {formatTime(player1TotalTime)}</p>
           </div>
-          <div className="p-3 bg-red-100 dark:bg-red-900 rounded-lg shadow flex-1 ml-2">
-            <p className={`text-sm font-bold ${currentPlayer === 2 ? 'text-red-600 dark:text-red-300' : 'text-gray-600 dark:text-gray-400'}`}>
+          <div className="p-3 bg-orange-100 dark:bg-orange-900 rounded-lg shadow flex-1 ml-2">
+            <p className={`text-sm font-bold ${currentPlayer === 2 ? 'text-orange-600 dark:text-orange-300' : 'text-gray-600 dark:text-gray-400'}`}>
               P2 {currentPlayer === 2 && '⭐'}
             </p>
             <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{player2Score}</p>
@@ -362,8 +362,8 @@ export default function BlackoutV2Page() {
 
       {/* Player 2 Score - Desktop: Right Side */}
       {!gameEnded && (
-        <div className="hidden md:block absolute top-20 right-4 p-4 bg-red-100 dark:bg-red-900 rounded-lg shadow" style={{ zIndex: 6 }}>
-          <p className={`text-lg font-bold ${currentPlayer === 2 ? 'text-red-600 dark:text-red-300' : 'text-gray-600 dark:text-gray-400'}`}>
+        <div className="hidden md:block absolute top-20 right-4 p-4 bg-orange-100 dark:bg-orange-900 rounded-lg shadow" style={{ zIndex: 6 }}>
+          <p className={`text-lg font-bold ${currentPlayer === 2 ? 'text-orange-600 dark:text-orange-300' : 'text-gray-600 dark:text-gray-400'}`}>
             Player 2 {currentPlayer === 2 && '⭐'}
           </p>
           <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{player2Score}</p>
@@ -462,7 +462,7 @@ export default function BlackoutV2Page() {
                 <span className="font-bold text-blue-600 dark:text-blue-400">Player 1:</span> {player1Score} points
               </p>
               <p className="text-lg md:text-xl text-gray-900 dark:text-gray-100">
-                <span className="font-bold text-red-600 dark:text-red-400">Player 2:</span> {player2Score} points
+                <span className="font-bold text-orange-600 dark:text-orange-400">Player 2:</span> {player2Score} points
               </p>
             </div>
             <button
@@ -486,7 +486,7 @@ export default function BlackoutV2Page() {
                 } ${
                   50 - 49 * Math.cos(timerProgress * 2 * Math.PI)
                 } Z`}
-                fill="rgb(168, 85, 247)"
+                fill="rgb(239, 68, 68)"
                 opacity="0.3"
               />
             </svg>
@@ -505,7 +505,7 @@ export default function BlackoutV2Page() {
           {/* SVG overlay for drawing lines */}
           <svg className="absolute top-0 left-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
             {submittedWords.map((wordData, idx) => {
-              const color = wordData.player === 1 ? '#3b82f6' : '#ef4444'; // blue-500 or red-500
+              const color = wordData.player === 1 ? '#3b82f6' : '#f97316'; // blue-500 or orange-500
               const lines = [];
 
               for (let i = 0; i < wordData.tiles.length - 1; i++) {
@@ -556,22 +556,24 @@ export default function BlackoutV2Page() {
                     className={`border border-gray-300 dark:border-gray-600 aspect-square flex flex-col items-center justify-center relative ${isUsed
                         ? owner === 1
                           ? 'bg-blue-600 dark:bg-blue-700 cursor-not-allowed'
-                          : 'bg-red-600 dark:bg-red-700 cursor-not-allowed'
+                          : 'bg-orange-600 dark:bg-orange-700 cursor-not-allowed'
                         : isSelected
-                          ? 'bg-green-400 dark:bg-green-500 text-white cursor-pointer'
+                          ? isValid === false
+                            ? 'bg-red-400 dark:bg-red-500 text-white cursor-pointer'
+                            : 'bg-green-400 dark:bg-green-500 text-white cursor-pointer'
                           : 'bg-white dark:bg-gray-800 hover:bg-blue-100 dark:hover:bg-blue-900 active:bg-blue-200 dark:active:bg-blue-800 cursor-pointer text-gray-900 dark:text-gray-100'
                       }`}
                   >
                     <span className={`text-xl md:text-2xl font-bold ${isUsed
                         ? owner === 1
                           ? 'text-blue-200 opacity-40'
-                          : 'text-red-200 opacity-40'
+                          : 'text-orange-200 opacity-40'
                         : ''
                       }`}>{cell}</span>
                     <span className={`text-[10px] md:text-xs absolute bottom-0.5 md:bottom-1 right-0.5 md:right-1 ${isUsed
                         ? owner === 1
                           ? 'text-blue-200 opacity-40'
-                          : 'text-red-200 opacity-40'
+                          : 'text-orange-200 opacity-40'
                         : ''
                       }`}>
                       {letterPoints[cell]}
@@ -601,10 +603,10 @@ export default function BlackoutV2Page() {
                   className={`px-3 py-1 rounded text-sm border-2 ${!item.isPassed ? 'cursor-pointer hover:opacity-80' : ''} ${item.isPassed
                       ? item.player === 1
                         ? 'bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-600 text-gray-700 dark:text-gray-400 italic'
-                        : 'bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-600 text-gray-700 dark:text-gray-400 italic'
+                        : 'bg-orange-50 dark:bg-orange-950 border-orange-300 dark:border-orange-600 text-gray-700 dark:text-gray-400 italic'
                       : item.player === 1
                         ? 'bg-blue-100 dark:bg-blue-900 border-blue-500 dark:border-blue-400 text-gray-900 dark:text-gray-100'
-                        : 'bg-red-100 dark:bg-red-900 border-red-500 dark:border-red-400 text-gray-900 dark:text-gray-100'
+                        : 'bg-orange-100 dark:bg-orange-900 border-orange-500 dark:border-orange-400 text-gray-900 dark:text-gray-100'
                     }`}
                 >
                   {item.isPassed ? (
