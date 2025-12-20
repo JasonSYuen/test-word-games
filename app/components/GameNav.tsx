@@ -1,7 +1,7 @@
 'use client'
 
 interface GameNavProps {
-  currentGame: 'blackout' | 'blackoutv2' | 'battle' | 'singleplayerbattle' | 'deck' | 'wordcross' | 'wordcrossv2' | 'librarianstower' | 'inkpots' | 'morehexes' | 'visualhexes';
+  currentGame: 'blackout' | 'blackoutv2' | 'blackout-online' | 'battle' | 'singleplayerbattle' | 'deck' | 'wordcross' | 'wordcrossv2' | 'librarianstower' | 'inkpots' | 'morehexes' | 'visualhexes';
 }
 
 export default function GameNav({ currentGame }: GameNavProps) {
@@ -14,6 +14,8 @@ export default function GameNav({ currentGame }: GameNavProps) {
             window.location.href = '/';
           } else if (value === 'blackoutv2') {
             window.location.href = '/games/blackoutv2';
+          } else if (value === 'blackout-online') {
+            window.location.href = '/games/blackout-online';
           } else if (value === 'wordcrossv2') {
             window.location.href = '/games/wordcrossv2';
           } else if (value === 'blackout') {
@@ -41,6 +43,7 @@ export default function GameNav({ currentGame }: GameNavProps) {
       >
         <option value="home">Home</option>
         <option value="blackoutv2">Blackout V2</option>
+        <option value="blackout-online">Blackout Online</option>
         <option value="wordcrossv2">Word Cross V2</option>
         <option value="blackout">Blackout Mode</option>
         <option value="battle">Battle Mode</option>
