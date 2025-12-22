@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import GameNav from '@/app/components/GameNav';
 
 // Calculate hexagonal grid coordinates for a hexagon with side length 5
-function generateHexGrid(sideLength: number): Array<{ q: number, r: number, s: number, color: string }> {
-  const hexes: Array<{ q: number, r: number, s: number, color: string }> = [];
-  const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b']; // red, blue, green, orange
+function generateHexGrid(sideLength: number): Array<{ q: number, r: number, s: number, color: string, claimed: boolean }> {
+  const hexes: Array<{ q: number, r: number, s: number, color: string, claimed: boolean }> = [];
+  // Vibrant colors for claimed tiles
+  const colors = ['red', 'blue', 'green', 'yellow'];
 
   // Generate hexagon shape using axial coordinates
   for (let q = -sideLength + 1; q < sideLength; q++) {
@@ -16,7 +17,7 @@ function generateHexGrid(sideLength: number): Array<{ q: number, r: number, s: n
     for (let r = r1; r <= r2; r++) {
       const s = -q - r;
       const randomColor = colors[Math.floor(Math.random() * colors.length)];
-      hexes.push({ q, r, s, color: randomColor });
+      hexes.push({ q, r, s, color: randomColor, claimed: false });
     }
   }
 
@@ -31,108 +32,119 @@ function axialToPixel(q: number, r: number, size: number): { x: number, y: numbe
 }
 
 export default function MoreHexesPage() {
-  const [hexGrid, setHexGrid] = useState<Array<{ q: number, r: number, s: number, color: string }>>([]);
+  const [hexGrid, setHexGrid] = useState<Array<{ q: number, r: number, s: number, color: string, claimed: boolean }>>([]);
   const hexSize = 40; // Size of each hexagon in pixels
   const sideLength = 4;
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragColor, setDragColor] = useState<string | null>(null);
-  const [isAutoSpreading, setIsAutoSpreading] = useState(false);
 
   useEffect(() => {
     setHexGrid(generateHexGrid(sideLength));
   }, []);
 
-  // Get adjacent hex coordinates (6 neighbors in hex grid)
-  const getAdjacentIndices = (index: number): number[] => {
-    const hex = hexGrid[index];
-    if (!hex) return [];
+  // Toggle claim status of a hex tile
+  const handleHexClick = (index: number) => {
+    const newGrid = [...hexGrid];
+    newGrid[index] = { ...newGrid[index], claimed: !newGrid[index].claimed };
+    setHexGrid(newGrid);
+  };
 
-    // Axial coordinate neighbors: 6 directions
-    const neighbors = [
-      { q: hex.q + 1, r: hex.r },     // right
-      { q: hex.q - 1, r: hex.r },     // left
-      { q: hex.q, r: hex.r + 1 },     // bottom-right
-      { q: hex.q, r: hex.r - 1 },     // top-left
-      { q: hex.q + 1, r: hex.r - 1 }, // top-right
-      { q: hex.q - 1, r: hex.r + 1 }, // bottom-left
-    ];
-
-    // Find indices of neighbors that exist in the grid
-    const adjacentIndices: number[] = [];
-    neighbors.forEach(neighbor => {
-      const idx = hexGrid.findIndex(h => h.q === neighbor.q && h.r === neighbor.r);
-      if (idx !== -1) {
-        adjacentIndices.push(idx);
+  // Color mapping: unclaimed are muted/desaturated, claimed are vibrant
+  const getColor = (colorName: string, claimed: boolean): string => {
+    const colorMap: { [key: string]: { unclaimed: string; claimed: string } } = {
+      'red': {
+        unclaimed: '#7f1d1d',  // muted dark red
+        claimed: '#dc2626'     // vibrant red
+      },
+      'blue': {
+        unclaimed: '#1e3a8a',  // muted dark blue
+        claimed: '#2563eb'     // vibrant blue
+      },
+      'green': {
+        unclaimed: '#14532d',  // muted dark green
+        claimed: '#16a34a'     // vibrant green
+      },
+      'yellow': {
+        unclaimed: '#713f12',  // muted dark yellow/gold
+        claimed: '#eab308'     // vibrant yellow
       }
-    });
+    };
 
-    return adjacentIndices;
+    return claimed ? colorMap[colorName].claimed : colorMap[colorName].unclaimed;
   };
 
-  // Auto-spread colors every second
-  useEffect(() => {
-    if (!isAutoSpreading) return;
-
-    const interval = setInterval(() => {
-      setHexGrid(prevGrid => {
-        const newGrid = [...prevGrid];
-
-        // Pick 8 random tiles to spread from
-        const tilesToSpread = [];
-        for (let i = 0; i < 8 && i < newGrid.length; i++) {
-          const randomIndex = Math.floor(Math.random() * newGrid.length);
-          tilesToSpread.push(randomIndex);
-        }
-
-        // For each selected tile, spread its color to a random adjacent tile
-        tilesToSpread.forEach(sourceIndex => {
-          const adjacentIndices = getAdjacentIndices(sourceIndex);
-          if (adjacentIndices.length > 0) {
-            const targetIndex = adjacentIndices[Math.floor(Math.random() * adjacentIndices.length)];
-            newGrid[targetIndex] = { ...newGrid[targetIndex], color: newGrid[sourceIndex].color };
-          }
-        });
-
-        return newGrid;
-      });
-    }, 100);
-
-    return () => clearInterval(interval);
-  }, [isAutoSpreading, hexGrid.length]);
-
-  const handleMouseDown = (index: number) => {
-    setIsDragging(true);
-    setDragColor(hexGrid[index].color);
+  // Get display color for the legend (always show claimed color)
+  const getDisplayColor = (colorName: string): string => {
+    const colorMap: { [key: string]: string } = {
+      'red': '#dc2626',
+      'blue': '#2563eb',
+      'green': '#16a34a',
+      'yellow': '#eab308'
+    };
+    return colorMap[colorName];
   };
 
-  const handleMouseEnter = (index: number) => {
-    if (isDragging && dragColor) {
-      const newGrid = [...hexGrid];
-      newGrid[index] = { ...newGrid[index], color: dragColor };
-      setHexGrid(newGrid);
-    }
+  // Calculate claimed tile counts by color
+  const claimedCounts = {
+    'red': hexGrid.filter(hex => hex.claimed && hex.color === 'red').length,
+    'blue': hexGrid.filter(hex => hex.claimed && hex.color === 'blue').length,
+    'green': hexGrid.filter(hex => hex.claimed && hex.color === 'green').length,
+    'yellow': hexGrid.filter(hex => hex.claimed && hex.color === 'yellow').length,
   };
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    setDragColor(null);
-  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-500 to-blue-500 p-4 md:p-8" onMouseUp={handleMouseUp}>
+    <div className="min-h-screen bg-gradient-to-br from-purple-500 to-blue-500 p-4 md:p-8">
       <GameNav currentGame="morehexes" />
 
       <div className="text-center pt-20 px-2">
         <h1 className="text-4xl md:text-5xl font-bold text-white mb-8">More Hexes</h1>
 
-        <div className="flex justify-center items-center">
+        <div className="flex justify-center items-start gap-8">
+          {/* Color Count Panel */}
+          <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-6 text-black min-w-[200px]">
+            <h2 className="text-2xl font-bold mb-4">Claimed Tiles</h2>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded" style={{ backgroundColor: getDisplayColor('red') }}></div>
+                <span className="text-xl font-semibold">Red: {claimedCounts['red']}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded" style={{ backgroundColor: getDisplayColor('blue') }}></div>
+                <span className="text-xl font-semibold">Blue: {claimedCounts['blue']}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded" style={{ backgroundColor: getDisplayColor('green') }}></div>
+                <span className="text-xl font-semibold">Green: {claimedCounts['green']}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded" style={{ backgroundColor: getDisplayColor('yellow') }}></div>
+                <span className="text-xl font-semibold">Yellow: {claimedCounts['yellow']}</span>
+              </div>
+              <div className="pt-3 border-t border-black border-opacity-30">
+                <span className="text-xl font-bold">Total: {Object.values(claimedCounts).reduce((a, b) => a + b, 0)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Hex Grid */}
+          <div className="flex justify-center items-center">
           <svg
             width="800"
             height="800"
             viewBox="-250 -250 500 500"
             className="max-w-full select-none"
-            onMouseLeave={handleMouseUp}
           >
+            {/* Define glow filter for claimed tiles */}
+            <defs>
+              <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+
+            {/* Render all hexagons first */}
             {hexGrid.map((hex, idx) => {
               const { x, y } = axialToPixel(hex.q, hex.r, hexSize);
 
@@ -146,51 +158,56 @@ export default function MoreHexesPage() {
               }
 
               return (
-                <g key={idx}>
-                  <polygon
-                    points={points.join(' ')}
-                    fill={hex.color}
-                    stroke="#1f2937"
-                    strokeWidth="3"
-                    className="hover:opacity-80 transition-opacity cursor-pointer"
-                    onMouseDown={() => handleMouseDown(idx)}
-                    onMouseEnter={() => handleMouseEnter(idx)}
-                    style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
-                  />
-                  {/* Show coordinates for debugging */}
-                  <text
-                    x={x}
-                    y={y}
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    fontSize="12"
-                    fill="white"
-                    fontWeight="bold"
-                    pointerEvents="none"
-                  >
-                    {hex.q},{hex.r}
-                  </text>
-                </g>
+                <polygon
+                  key={idx}
+                  points={points.join(' ')}
+                  fill={getColor(hex.color, hex.claimed)}
+                  stroke="#1f2937"
+                  strokeWidth="2"
+                  className="hover:opacity-80 transition-all cursor-pointer"
+                  onClick={() => handleHexClick(idx)}
+                  filter={hex.claimed ? 'url(#glow)' : 'none'}
+                />
+              );
+            })}
+
+            {/* Render white outlines for claimed tiles on top */}
+            {hexGrid.map((hex, idx) => {
+              if (!hex.claimed) return null;
+
+              const { x, y } = axialToPixel(hex.q, hex.r, hexSize);
+
+              // Create hexagon path
+              const points = [];
+              for (let i = 0; i < 6; i++) {
+                const angle = (Math.PI / 180) * (60 * i - 30);
+                const px = x + hexSize * Math.cos(angle);
+                const py = y + hexSize * Math.sin(angle);
+                points.push(`${px},${py}`);
+              }
+
+              return (
+                <polygon
+                  key={`outline-${idx}`}
+                  points={points.join(' ')}
+                  fill="none"
+                  stroke="#ffffff"
+                  strokeWidth="6"
+                  opacity="0.8"
+                  pointerEvents="none"
+                />
               );
             })}
           </svg>
+          </div>
         </div>
 
         <div className="mt-8 text-white">
           <p className="text-lg">Hexagon Grid: Side Length {sideLength}</p>
           <p className="text-sm opacity-75">Total Hexes: {hexGrid.length}</p>
+          <p className="text-sm opacity-75 mt-2">Click hexagons to claim them!</p>
 
           <div className="mt-6 flex gap-4 justify-center">
-            <button
-              onClick={() => setIsAutoSpreading(!isAutoSpreading)}
-              className={`px-6 py-3 rounded-lg font-semibold text-white transition-colors ${isAutoSpreading
-                ? 'bg-red-500 hover:bg-red-600'
-                : 'bg-green-500 hover:bg-green-600'
-                }`}
-            >
-              {isAutoSpreading ? 'Stop Auto-Spread' : 'Start Auto-Spread'}
-            </button>
-
             <button
               onClick={() => setHexGrid(generateHexGrid(sideLength))}
               className="px-6 py-3 bg-blue-500 hover:bg-blue-600 rounded-lg font-semibold text-white transition-colors"
