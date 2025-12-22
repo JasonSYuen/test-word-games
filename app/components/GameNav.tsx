@@ -1,7 +1,7 @@
 'use client'
 
 interface GameNavProps {
-  currentGame: 'blackout' | 'blackoutv2' | 'blackout-online' | 'battle' | 'singleplayerbattle' | 'deck' | 'wordcross' | 'wordcrossv2' | 'librarianstower' | 'inkpots' | 'morehexes' | 'visualhexes';
+  currentGame: 'blackout' | 'blackoutv2' | 'blackout-online' | 'battle' | 'singleplayerbattle' | 'deck' | 'wordcross' | 'wordcrossv2' | 'librarianstower' | 'inkpots' | 'morehexes' | 'visualhexes' | 'escape';
 }
 
 export default function GameNav({ currentGame }: GameNavProps) {
@@ -36,6 +36,8 @@ export default function GameNav({ currentGame }: GameNavProps) {
             window.location.href = '/games/morehexes';
           } else if (value === 'visualhexes') {
             window.location.href = '/games/visualhexes';
+          } else if (value === 'escape') {
+            window.location.href = '/games/escape';
           }
         }}
         className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 font-semibold cursor-pointer"
@@ -54,6 +56,7 @@ export default function GameNav({ currentGame }: GameNavProps) {
         <option value="inkpots">Inkpots</option>
         <option value="morehexes">More Hexes</option>
         <option value="visualhexes">Visual Hexes</option>
+        <option value="escape">Escape</option>
       </select>
     </div>
   );
