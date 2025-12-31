@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import GameNav from '@/app/components/GameNav';
 import { useWordValidation } from '@/app/components/useWordValidation';
+import { ItemId, ITEMS } from './items';
 
 // All letters (consonants and vowels) - for drafting
 const commonLetters = ['E', 'T', 'A', 'O', 'I', 'N', 'S', 'H', 'R'];  // ~60% chance, 1 coin
@@ -47,9 +48,13 @@ function generateLetterCard(): LetterCard {
   };
 }
 
-// Generate a choice of 3 random letter cards
-function generateChoices(): LetterCard[] {
-  return [generateLetterCard(), generateLetterCard(), generateLetterCard()];
+// Generate a choice of random letter cards (default 3, can be reduced to 2 by Writers Block)
+function generateChoices(count: number = 3): LetterCard[] {
+  const choices: LetterCard[] = [];
+  for (let i = 0; i < count; i++) {
+    choices.push(generateLetterCard());
+  }
+  return choices;
 }
 
 // Get color class - gold for all letter cards
@@ -80,8 +85,96 @@ export default function Inkpots2Page() {
   const [showContinueButton, setShowContinueButton] = useState(false);
   const [showShop, setShowShop] = useState(false);
 
+  // Item inventory system
+  const [player1Items, setPlayer1Items] = useState<Set<ItemId>>(new Set());
+  const [player2Items, setPlayer2Items] = useState<Set<ItemId>>(new Set());
+
+  // Track active one-time items (ready to be consumed)
+  const [player1ActiveItems, setPlayer1ActiveItems] = useState<Set<ItemId>>(new Set());
+  const [player2ActiveItems, setPlayer2ActiveItems] = useState<Set<ItemId>>(new Set());
+
+  // Speed Writing tracking (for playing 2 words in one turn)
+  const [speedWritingFirstWord, setSpeedWritingFirstWord] = useState<string | null>(null);
+  const [speedWritingWordsPlayed, setSpeedWritingWordsPlayed] = useState(0);
+
   // Use the custom validation hook
   const { isValid } = useWordValidation(currentWord);
+
+  // ============================================
+  // ITEM SYSTEM HELPER FUNCTIONS
+  // ============================================
+
+  // Check if a player has a specific item (owned, may or may not be active)
+  const hasItem = (player: 1 | 2, itemId: ItemId): boolean => {
+    return (player === 1 ? player1Items : player2Items).has(itemId);
+  };
+
+  // Check if a player has an active item ready to use
+  const hasActiveItem = (player: 1 | 2, itemId: ItemId): boolean => {
+    return (player === 1 ? player1ActiveItems : player2ActiveItems).has(itemId);
+  };
+
+  // Consume a one-time item (remove from active items)
+  const consumeItem = (player: 1 | 2, itemId: ItemId) => {
+    if (player === 1) {
+      const newActive = new Set(player1ActiveItems);
+      newActive.delete(itemId);
+      setPlayer1ActiveItems(newActive);
+    } else {
+      const newActive = new Set(player2ActiveItems);
+      newActive.delete(itemId);
+      setPlayer2ActiveItems(newActive);
+    }
+  };
+
+  // Get all active effects affecting a player
+  const getActiveEffects = (player: 1 | 2, effectType: string) => {
+    const effects: any[] = [];
+    const opponent = player === 1 ? 2 : 1;
+
+    // Check opponent's ACTIVE items that affect this player
+    const opponentActiveItems = opponent === 1 ? player1ActiveItems : player2ActiveItems;
+    opponentActiveItems.forEach(itemId => {
+      const item = ITEMS[itemId];
+      if (item.affectsOpponent) {
+        effects.push(...item.effects.filter((e: any) => e.type === effectType));
+      }
+    });
+
+    // Check player's own ACTIVE items (that affect themselves)
+    const playerActiveItems = player === 1 ? player1ActiveItems : player2ActiveItems;
+    playerActiveItems.forEach(itemId => {
+      const item = ITEMS[itemId];
+      if (!item.affectsOpponent) {
+        effects.push(...item.effects.filter((e: any) => e.type === effectType));
+      }
+    });
+
+    return effects;
+  };
+
+  // Calculate draft choice count based on active effects
+  const getDraftChoiceCount = (player: 1 | 2): number => {
+    // Check for draft reduction from opponent
+    const draftReduceEffects = getActiveEffects(player, 'draft_reduce');
+    if (draftReduceEffects.length > 0) {
+      // Take the minimum if multiple effects apply
+      return Math.min(...draftReduceEffects.map((e: any) => e.type === 'draft_reduce' ? e.value : 3));
+    }
+    return 3; // default
+  };
+
+  // Calculate total draft picks (5 + any bonuses)
+  const getTotalDraftPicks = (player: 1 | 2): number => {
+    const extraPicksEffects = getActiveEffects(player, 'extra_draft_picks');
+    const extraPicks = extraPicksEffects.reduce((total: number, e: any) =>
+      total + (e.type === 'extra_draft_picks' ? e.value : 0), 0);
+    return 5 + extraPicks;
+  };
+
+  // ============================================
+  // END ITEM SYSTEM HELPER FUNCTIONS
+  // ============================================
 
   // Generate initial draft choices on client side only
   useEffect(() => {
@@ -99,47 +192,105 @@ export default function Inkpots2Page() {
       const newLetters = [...player1Letters, card];
       setPlayer1Letters(newLetters);
 
-      if (newLetters.length >= 5) {
-        // Player 1 done, switch to Player 2 with new choices
+      const totalPicks = getTotalDraftPicks(1);
+      if (newLetters.length >= totalPicks) {
+        // Player 1 done, consume draft items and switch to Player 2
+        consumeItem(1, 'crunch_time'); // Consume if active
+        const choiceCount = getDraftChoiceCount(2);
         setGamePhase('draft-p2');
-        setCurrentChoices(generateChoices());
+        setCurrentChoices(generateChoices(choiceCount));
       } else {
         // Generate new choices for next pick
-        setCurrentChoices(generateChoices());
+        const choiceCount = getDraftChoiceCount(1);
+        setCurrentChoices(generateChoices(choiceCount));
       }
     } else if (gamePhase === 'draft-p2') {
       const newLetters = [...player2Letters, card];
       setPlayer2Letters(newLetters);
 
-      if (newLetters.length >= 5) {
+      const totalPicks = getTotalDraftPicks(2);
+      if (newLetters.length >= totalPicks) {
+        // Player 2 done, consume draft items
+        consumeItem(2, 'crunch_time'); // Consume if active
+        consumeItem(1, 'writers_block'); // Consume opponent's writers block if it affected P2
+        consumeItem(2, 'writers_block'); // Just in case (won't hurt)
+
+        // Apply Stroke of Genius (all vowels) to each player if active
+        if (hasActiveItem(1, 'stroke_of_genius')) {
+          const vowels: LetterCard[] = ['A', 'E', 'I', 'O', 'U'].map(letter => ({
+            letter,
+            coinValue: getCoinValue(letter)
+          }));
+          setPlayer1Letters([...player1Letters, ...vowels]);
+          consumeItem(1, 'stroke_of_genius');
+        }
+        if (hasActiveItem(2, 'stroke_of_genius')) {
+          const vowels: LetterCard[] = ['A', 'E', 'I', 'O', 'U'].map(letter => ({
+            letter,
+            coinValue: getCoinValue(letter)
+          }));
+          setPlayer2Letters([...newLetters, ...vowels]);
+          consumeItem(2, 'stroke_of_genius');
+        }
+
         setGamePhase('play');
         setCurrentPlayer(1);
       } else {
         // Generate new choices for next pick
-        setCurrentChoices(generateChoices());
+        const choiceCount = getDraftChoiceCount(2);
+        setCurrentChoices(generateChoices(choiceCount));
       }
     } else if (gamePhase === 'redraft-p1') {
       const newLetters = [...player1Letters, card];
       setPlayer1Letters(newLetters);
 
-      if (newLetters.length >= 5) {
-        // Player 1 done, switch to Player 2 with new choices
+      const totalPicks = getTotalDraftPicks(1);
+      if (newLetters.length >= totalPicks) {
+        // Player 1 done, consume draft items and switch to Player 2
+        consumeItem(1, 'crunch_time'); // Consume if active
+        const choiceCount = getDraftChoiceCount(2);
         setGamePhase('redraft-p2');
-        setCurrentChoices(generateChoices());
+        setCurrentChoices(generateChoices(choiceCount));
       } else {
         // Generate new choices for next pick
-        setCurrentChoices(generateChoices());
+        const choiceCount = getDraftChoiceCount(1);
+        setCurrentChoices(generateChoices(choiceCount));
       }
     } else if (gamePhase === 'redraft-p2') {
       const newLetters = [...player2Letters, card];
       setPlayer2Letters(newLetters);
 
-      if (newLetters.length >= 5) {
+      const totalPicks = getTotalDraftPicks(2);
+      if (newLetters.length >= totalPicks) {
+        // Player 2 done, consume draft items
+        consumeItem(2, 'crunch_time'); // Consume if active
+        consumeItem(1, 'writers_block'); // Consume opponent's writers block if it affected P2
+        consumeItem(2, 'writers_block'); // Just in case
+
+        // Apply Stroke of Genius (all vowels) to each player if active
+        if (hasActiveItem(1, 'stroke_of_genius')) {
+          const vowels: LetterCard[] = ['A', 'E', 'I', 'O', 'U'].map(letter => ({
+            letter,
+            coinValue: getCoinValue(letter)
+          }));
+          setPlayer1Letters([...player1Letters, ...vowels]);
+          consumeItem(1, 'stroke_of_genius');
+        }
+        if (hasActiveItem(2, 'stroke_of_genius')) {
+          const vowels: LetterCard[] = ['A', 'E', 'I', 'O', 'U'].map(letter => ({
+            letter,
+            coinValue: getCoinValue(letter)
+          }));
+          setPlayer2Letters([...newLetters, ...vowels]);
+          consumeItem(2, 'stroke_of_genius');
+        }
+
         setGamePhase('play');
         setCurrentPlayer(1);
       } else {
         // Generate new choices for next pick
-        setCurrentChoices(generateChoices());
+        const choiceCount = getDraftChoiceCount(2);
+        setCurrentChoices(generateChoices(choiceCount));
       }
     }
   };
@@ -163,6 +314,16 @@ export default function Inkpots2Page() {
     setGameOver(false);
     setWinner(null);
     setShowContinueButton(false);
+
+    // Reset item inventories
+    setPlayer1Items(new Set());
+    setPlayer2Items(new Set());
+    setPlayer1ActiveItems(new Set());
+    setPlayer2ActiveItems(new Set());
+
+    // Reset Speed Writing state
+    setSpeedWritingFirstWord(null);
+    setSpeedWritingWordsPlayed(0);
   };
 
   // Move letter card to word bar
@@ -230,8 +391,50 @@ export default function Inkpots2Page() {
     return cards.reduce((total, card) => total + card.coinValue, 0);
   };
 
+  // Generic item purchase handler
+  const handlePurchaseItem = (itemId: ItemId) => {
+    const item = ITEMS[itemId];
+    const currentCoins = currentPlayer === 1 ? player1Coins : player2Coins;
+
+    // For one-time items, check if already active (can buy multiple times but only have one active)
+    if (item.oneTime && hasActiveItem(currentPlayer, itemId)) {
+      return;
+    }
+
+    // Check affordability
+    if (currentCoins < item.cost) {
+      return;
+    }
+
+    // Deduct coins and add item to inventory
+    if (currentPlayer === 1) {
+      setPlayer1Coins(player1Coins - item.cost);
+      setPlayer1Items(new Set([...player1Items, itemId]));
+      // For one-time items, also add to active items
+      if (item.oneTime) {
+        setPlayer1ActiveItems(new Set([...player1ActiveItems, itemId]));
+      }
+    } else {
+      setPlayer2Coins(player2Coins - item.cost);
+      setPlayer2Items(new Set([...player2Items, itemId]));
+      // For one-time items, also add to active items
+      if (item.oneTime) {
+        setPlayer2ActiveItems(new Set([...player2ActiveItems, itemId]));
+      }
+    }
+
+    setShowShop(false);
+  };
+
   // Skip turn without playing a word
   const handleSkipTurn = () => {
+    // If Speed Writing is active, forfeit it
+    if (hasActiveItem(currentPlayer, 'speed_writing')) {
+      consumeItem(currentPlayer, 'speed_writing');
+      setSpeedWritingFirstWord(null);
+      setSpeedWritingWordsPlayed(0);
+    }
+
     if (currentPlayer === 1) {
       setPlayer1Words([...player1Words, { word: 'PASS', coins: 0, isPassed: true }]);
     } else {
@@ -261,29 +464,81 @@ export default function Inkpots2Page() {
   const submitWord = () => {
     if (isValid && currentWord.length >= 3) {
       const usedCards = wordBar.filter(card => card !== null) as LetterCard[];
-      const coins = calculateCoins(usedCards);
+      let coins = calculateCoins(usedCards);
       const letterCount = currentWord.length;
+      const opponent = currentPlayer === 1 ? 2 : 1;
 
-      if (currentPlayer === 1) {
-        setPlayer1Words([...player1Words, { word: currentWord.toUpperCase(), coins }]);
-        setPlayer1BookLetters(player1BookLetters + letterCount);
-        setPlayer1Coins(player1Coins + coins);
+      // Check if Speed Writing is active and this is the second word
+      const isSpeedWritingActive = hasActiveItem(currentPlayer, 'speed_writing');
+      const isSecondWord = isSpeedWritingActive && speedWritingWordsPlayed === 1;
 
-        // Check for win condition
-        if (player1BookLetters + letterCount >= 50) {
-          setGameOver(true);
-          setWinner(1);
+      // Validate that second word is different from first word (for Speed Writing)
+      if (isSecondWord && currentWord.toUpperCase() === speedWritingFirstWord) {
+        // Can't submit the same word twice - just return without doing anything
+        alert('You must play a different word for your second word!');
+        return;
+      }
+
+      // Check if opponent has "Throw Some Ink" active - if so, delete this word
+      const isWordDeleted = hasActiveItem(opponent, 'throw_some_ink');
+
+      if (isWordDeleted) {
+        // Word is deleted - no coins or letters awarded
+        consumeItem(opponent, 'throw_some_ink');
+
+        if (currentPlayer === 1) {
+          setPlayer1Words([...player1Words, { word: `${currentWord.toUpperCase()} (DELETED)`, coins: 0, isPassed: false }]);
+        } else {
+          setPlayer2Words([...player2Words, { word: `${currentWord.toUpperCase()} (DELETED)`, coins: 0, isPassed: false }]);
         }
       } else {
-        setPlayer2Words([...player2Words, { word: currentWord.toUpperCase(), coins }]);
-        setPlayer2BookLetters(player2BookLetters + letterCount);
-        setPlayer2Coins(player2Coins + coins);
-
-        // Check for win condition
-        if (player2BookLetters + letterCount >= 50) {
-          setGameOver(true);
-          setWinner(2);
+        // Apply Publisher's Favor (3x coins) if active
+        if (hasActiveItem(currentPlayer, 'publishers_favor')) {
+          coins = coins * 3;
+          consumeItem(currentPlayer, 'publishers_favor');
         }
+
+        if (currentPlayer === 1) {
+          setPlayer1Words([...player1Words, { word: currentWord.toUpperCase(), coins }]);
+          setPlayer1BookLetters(player1BookLetters + letterCount);
+          setPlayer1Coins(player1Coins + coins);
+
+          // Check for win condition
+          if (player1BookLetters + letterCount >= 50) {
+            setGameOver(true);
+            setWinner(1);
+          }
+        } else {
+          setPlayer2Words([...player2Words, { word: currentWord.toUpperCase(), coins }]);
+          setPlayer2BookLetters(player2BookLetters + letterCount);
+          setPlayer2Coins(player2Coins + coins);
+
+          // Check for win condition
+          if (player2BookLetters + letterCount >= 50) {
+            setGameOver(true);
+            setWinner(2);
+          }
+        }
+      }
+
+      // Handle Speed Writing logic
+      if (isSpeedWritingActive && speedWritingWordsPlayed === 0) {
+        // First word with Speed Writing - store it and continue
+        setSpeedWritingFirstWord(currentWord.toUpperCase());
+        setSpeedWritingWordsPlayed(1);
+
+        // Clear the word bar for the second word
+        setWordBar(Array(7).fill(null));
+        setUsedLetterIndices(new Set());
+        setWordBarToSource(new Map());
+
+        // Don't switch players - same player gets to play again
+        return;
+      } else if (isSecondWord) {
+        // Second word completed - consume Speed Writing and reset
+        consumeItem(currentPlayer, 'speed_writing');
+        setSpeedWritingFirstWord(null);
+        setSpeedWritingWordsPlayed(0);
       }
 
       // Clear the word bar and reset
@@ -441,44 +696,33 @@ export default function Inkpots2Page() {
             </div>
 
             <div className="space-y-4">
-              {/* Item 1 */}
-              <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-4 hover:border-yellow-500 transition-colors">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Item 1</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Description coming soon</p>
+              {/* NEW: Dynamic item list from items.ts */}
+              {Object.values(ITEMS).map(item => (
+                <div key={item.id} className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-4 hover:border-yellow-500 transition-colors">
+                  <div className="flex justify-between items-center">
+                    <div className="flex-1 mr-4">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{item.name}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{item.description}</p>
+                    </div>
+                    <button
+                      onClick={() => handlePurchaseItem(item.id)}
+                      disabled={
+                        (currentPlayer === 1 ? player1Coins : player2Coins) < item.cost ||
+                        (item.oneTime && hasActiveItem(currentPlayer, item.id))
+                      }
+                      className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap ${
+                        (item.oneTime && hasActiveItem(currentPlayer, item.id))
+                          ? 'bg-green-400 text-white cursor-not-allowed'
+                          : (currentPlayer === 1 ? player1Coins : player2Coins) >= item.cost
+                            ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                            : 'bg-gray-300 text-gray-700 cursor-not-allowed'
+                      }`}
+                    >
+                      {item.oneTime && hasActiveItem(currentPlayer, item.id) ? 'Active' : `${item.cost} coins`}
+                    </button>
                   </div>
-                  <button className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg font-semibold cursor-not-allowed">
-                    ? coins
-                  </button>
                 </div>
-              </div>
-
-              {/* Item 2 */}
-              <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-4 hover:border-yellow-500 transition-colors">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Item 2</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Description coming soon</p>
-                  </div>
-                  <button className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg font-semibold cursor-not-allowed">
-                    ? coins
-                  </button>
-                </div>
-              </div>
-
-              {/* Item 3 */}
-              <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg p-4 hover:border-yellow-500 transition-colors">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Item 3</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Description coming soon</p>
-                  </div>
-                  <button className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg font-semibold cursor-not-allowed">
-                    ? coins
-                  </button>
-                </div>
-              </div>
+              ))}
             </div>
 
             <div className="mt-6">
@@ -523,6 +767,16 @@ export default function Inkpots2Page() {
         {gamePhase === 'play' && !gameOver && (
           <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
             Player {currentPlayer}'s Turn
+            {hasActiveItem(currentPlayer, 'speed_writing') && speedWritingWordsPlayed === 1 && (
+              <span className="ml-3 text-green-600 dark:text-green-400 font-bold">
+                (Word 2 of 2 - Speed Writing!)
+              </span>
+            )}
+            {hasActiveItem(currentPlayer, 'speed_writing') && speedWritingWordsPlayed === 0 && (
+              <span className="ml-3 text-green-600 dark:text-green-400 font-bold">
+                (Word 1 of 2 - Speed Writing Active!)
+              </span>
+            )}
           </p>
         )}
 
@@ -663,7 +917,9 @@ export default function Inkpots2Page() {
                   // Clear letters and start re-draft
                   setPlayer1Letters([]);
                   setPlayer2Letters([]);
-                  setCurrentChoices(generateChoices());
+                  // NEW: Use helper function to get draft choice count for Player 1
+                  const choiceCount = getDraftChoiceCount(1);
+                  setCurrentChoices(generateChoices(choiceCount));
                   setGamePhase('redraft-p1');
                 }}
                 className="px-8 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-semibold text-lg"
