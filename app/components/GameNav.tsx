@@ -1,7 +1,7 @@
 'use client'
 
 interface GameNavProps {
-  currentGame: 'blackout' | 'blackoutv2' | 'blackout-online' | 'battle' | 'singleplayerbattle' | 'deck' | 'wordcross' | 'wordcrossv2' | 'librarianstower' | 'inkpots' | 'inkpots2' | 'morehexes' | 'visualhexes' | 'escape';
+  currentGame: 'blackout' | 'blackoutv2' | 'blackout-online' | 'battle' | 'singleplayerbattle' | 'deck' | 'wordcross' | 'wordcrossv2' | 'librarianstower' | 'inkpots' | 'inkpots2' | 'inkpots-online' | 'morehexes' | 'visualhexes' | 'escape';
 }
 
 export default function GameNav({ currentGame }: GameNavProps) {
@@ -34,6 +34,8 @@ export default function GameNav({ currentGame }: GameNavProps) {
             window.location.href = '/games/inkpots';
           } else if (value === 'inkpots2') {
             window.location.href = '/games/inkpots2';
+          } else if (value === 'inkpots-online') {
+            window.location.href = '/games/inkpots-online';
           } else if (value === 'morehexes') {
             window.location.href = '/games/morehexes';
           } else if (value === 'visualhexes') {
@@ -57,6 +59,7 @@ export default function GameNav({ currentGame }: GameNavProps) {
         <option value="librarianstower">Librarian's Tower</option>
         <option value="inkpots">Inkpots</option>
         <option value="inkpots2">Inkpots 2</option>
+        <option value="inkpots-online">Inkpots Online</option>
         <option value="morehexes">More Hexes</option>
         <option value="visualhexes">Visual Hexes</option>
         <option value="escape">Escape</option>
