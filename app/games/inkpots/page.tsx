@@ -5,10 +5,13 @@ import GameNav from '@/app/components/GameNav';
 import { letterPoints } from '@/app/components/wordValidation';
 import { useWordValidation } from '@/app/components/useWordValidation';
 
-// Letter frequency groups based on English usage
-const commonLetters = ['E', 'T', 'A', 'O', 'I', 'N', 'S', 'H', 'R'];  // ~60% chance
-const uncommonLetters = ['D', 'L', 'C', 'U', 'M', 'W', 'F', 'G', 'Y', 'P', 'B']; // ~30% chance
-const rareLetters = ['V', 'K', 'J', 'X', 'Q', 'Z']; // ~10% chance
+// Consonants only - for drafting
+const commonConsonants = ['T', 'N', 'S', 'H', 'R'];  // ~60% chance
+const uncommonConsonants = ['D', 'L', 'C', 'M', 'W', 'F', 'G', 'Y', 'P', 'B']; // ~30% chance
+const rareConsonants = ['V', 'K', 'J', 'X', 'Q', 'Z']; // ~10% chance
+
+// Vowels - always available to both players
+const vowels = ['A', 'E', 'I', 'O', 'U'];
 
 // Card types and attributes
 type CardType = 'attack' | 'shield' | 'heal';
@@ -27,25 +30,25 @@ function getRandomElement(): ElementType {
   return elements[Math.floor(Math.random() * elements.length)];
 }
 
-// Generate random letter with weighted probability
-function getRandomLetter(): string {
+// Generate random consonant with weighted probability
+function getRandomConsonant(): string {
   const rand = Math.random();
 
   if (rand < 0.6) {
-    // 60% chance - common letters
-    return commonLetters[Math.floor(Math.random() * commonLetters.length)];
+    // 60% chance - common consonants
+    return commonConsonants[Math.floor(Math.random() * commonConsonants.length)];
   } else if (rand < 0.9) {
-    // 30% chance - uncommon letters
-    return uncommonLetters[Math.floor(Math.random() * uncommonLetters.length)];
+    // 30% chance - uncommon consonants
+    return uncommonConsonants[Math.floor(Math.random() * uncommonConsonants.length)];
   } else {
-    // 10% chance - rare letters
-    return rareLetters[Math.floor(Math.random() * rareLetters.length)];
+    // 10% chance - rare consonants
+    return rareConsonants[Math.floor(Math.random() * rareConsonants.length)];
   }
 }
 
-// Generate a letter card with attributes
-function generateLetterCard(): LetterCard {
-  const letter = getRandomLetter();
+// Generate a consonant card with attributes
+function generateConsonantCard(): LetterCard {
+  const letter = getRandomConsonant();
   const rand = Math.random();
 
   if (rand < 0.6) {
@@ -74,13 +77,27 @@ function generateLetterCard(): LetterCard {
   }
 }
 
-// Generate a choice of 3 random letter cards
+// Generate a vowel card (no attributes)
+function generateVowelCard(vowel: string): LetterCard {
+  return {
+    letter: vowel,
+    cardType: 'heal', // Using heal type for styling purposes (neutral)
+    value: 0 // No combat value
+  };
+}
+
+// Generate a choice of 3 random consonant cards
 function generateChoices(): LetterCard[] {
-  return [generateLetterCard(), generateLetterCard(), generateLetterCard()];
+  return [generateConsonantCard(), generateConsonantCard(), generateConsonantCard()];
 }
 
 // Get color class based on card type and element
-function getCardColor(card: LetterCard): string {
+function getCardColor(card: LetterCard, isVowel: boolean = false): string {
+  // Vowels get simple gray styling
+  if (isVowel) {
+    return 'bg-gray-200 dark:bg-gray-700 border-2 border-gray-400 dark:border-gray-500';
+  }
+
   // Different border styles for each card type
   let borderStyle = '';
   let extraClasses = '';
@@ -158,41 +175,46 @@ function calculateAttributes(cards: LetterCard[]): AttributeBreakdown {
 }
 
 export default function InkpotsPage() {
-  const [player1Deck, setPlayer1Deck] = useState<LetterCard[]>([]);
-  const [player2Deck, setPlayer2Deck] = useState<LetterCard[]>([]);
+  const [player1Consonants, setPlayer1Consonants] = useState<LetterCard[]>([]);
+  const [player2Consonants, setPlayer2Consonants] = useState<LetterCard[]>([]);
+  const [vowelCards] = useState<LetterCard[]>(vowels.map(v => generateVowelCard(v)));
   const [currentChoices, setCurrentChoices] = useState<LetterCard[]>([]);
-  const [gamePhase, setGamePhase] = useState<'draft-p1' | 'draft-p2' | 'play'>('draft-p1');
+  const [sharedDraftPool, setSharedDraftPool] = useState<LetterCard[][]>([]); // Pool of card choices for all 5 picks
+  const [currentPickNumber, setCurrentPickNumber] = useState(0); // Track which pick we're on (0-4)
+  const [gamePhase, setGamePhase] = useState<'draft-p1' | 'draft-p2' | 'play' | 'redraft-p1' | 'redraft-p2'>('draft-p1');
   const [currentPlayer, setCurrentPlayer] = useState<1 | 2>(1);
   const [wordBar, setWordBar] = useState<(LetterCard | null)[]>(Array(10).fill(null));
-  const [usedDeckIndices, setUsedDeckIndices] = useState<Set<number>>(new Set());
-  const [draggedFrom, setDraggedFrom] = useState<{type: 'deck' | 'wordBar', index: number} | null>(null);
-  const [wordBarToDeck, setWordBarToDeck] = useState<Map<number, number>>(new Map());
+  const [usedConsonantIndices, setUsedConsonantIndices] = useState<Set<number>>(new Set());
+  const [usedVowelIndices, setUsedVowelIndices] = useState<Set<number>>(new Set());
+  const [draggedFrom, setDraggedFrom] = useState<{type: 'consonant' | 'vowel' | 'wordBar', index: number} | null>(null);
+  const [wordBarToSource, setWordBarToSource] = useState<Map<number, {type: 'consonant' | 'vowel', index: number}>>(new Map());
   const [player1Words, setPlayer1Words] = useState<Array<{word: string, attributes: AttributeBreakdown}>>([]);
   const [player2Words, setPlayer2Words] = useState<Array<{word: string, attributes: AttributeBreakdown}>>([]);
   const [currentWord, setCurrentWord] = useState('');
-  const [player1HandIndices, setPlayer1HandIndices] = useState<number[]>([]);
-  const [player2HandIndices, setPlayer2HandIndices] = useState<number[]>([]);
   const [player1Health, setPlayer1Health] = useState(30);
   const [player2Health, setPlayer2Health] = useState(30);
+  const [combatFeedback, setCombatFeedback] = useState<{
+    damageToP1: number;
+    damageToP2: number;
+    healP1: number;
+    healP2: number;
+    shieldP1: number;
+    shieldP2: number;
+  } | null>(null);
+  const [showContinueButton, setShowContinueButton] = useState(false);
 
   // Use the custom validation hook
   const { isValid } = useWordValidation(currentWord);
 
-  // Generate initial choices on client side only to avoid hydration mismatch
+  // Generate initial draft pool for all 5 picks on client side only
   useEffect(() => {
-    setCurrentChoices(generateChoices());
-  }, []);
-
-  // Generate a random hand of 10 cards from the deck
-  const generateHand = (player: 1 | 2) => {
-    const availableIndices = Array.from({ length: 26 }, (_, i) => i);
-    const shuffled = availableIndices.sort(() => Math.random() - 0.5);
-    if (player === 1) {
-      setPlayer1HandIndices(shuffled.slice(0, 10));
-    } else {
-      setPlayer2HandIndices(shuffled.slice(0, 10));
+    const pool: LetterCard[][] = [];
+    for (let i = 0; i < 5; i++) {
+      pool.push(generateChoices());
     }
-  };
+    setSharedDraftPool(pool);
+    setCurrentChoices(pool[0]);
+  }, []);
 
   // Update current word whenever word bar changes
   useEffect(() => {
@@ -202,87 +224,147 @@ export default function InkpotsPage() {
 
   const handleChooseLetter = (card: LetterCard) => {
     if (gamePhase === 'draft-p1') {
-      const newDeck = [...player1Deck, card];
-      setPlayer1Deck(newDeck);
+      const newConsonants = [...player1Consonants, card];
+      setPlayer1Consonants(newConsonants);
 
-      if (newDeck.length >= 26) {
+      if (newConsonants.length >= 5) {
+        // Player 1 done, switch to Player 2 with same pool
         setGamePhase('draft-p2');
-        setCurrentChoices(generateChoices());
+        setCurrentPickNumber(0); // Reset to first pick for P2
+        setCurrentChoices(sharedDraftPool[0]); // Show first pick choices
       } else {
-        setCurrentChoices(generateChoices());
+        // Move to next pick
+        const nextPick = currentPickNumber + 1;
+        setCurrentPickNumber(nextPick);
+        setCurrentChoices(sharedDraftPool[nextPick]);
       }
     } else if (gamePhase === 'draft-p2') {
-      const newDeck = [...player2Deck, card];
-      setPlayer2Deck(newDeck);
+      const newConsonants = [...player2Consonants, card];
+      setPlayer2Consonants(newConsonants);
 
-      if (newDeck.length >= 26) {
+      if (newConsonants.length >= 5) {
         setGamePhase('play');
         setCurrentPlayer(1);
-        // Generate initial hands for both players
-        setTimeout(() => {
-          generateHand(1);
-          generateHand(2);
-        }, 0);
       } else {
-        setCurrentChoices(generateChoices());
+        // Move to next pick
+        const nextPick = currentPickNumber + 1;
+        setCurrentPickNumber(nextPick);
+        setCurrentChoices(sharedDraftPool[nextPick]);
+      }
+    } else if (gamePhase === 'redraft-p1') {
+      const newConsonants = [...player1Consonants, card];
+      setPlayer1Consonants(newConsonants);
+
+      if (newConsonants.length >= 5) {
+        // Player 1 done, switch to Player 2 with same pool
+        setGamePhase('redraft-p2');
+        setCurrentPickNumber(0); // Reset to first pick for P2
+        setCurrentChoices(sharedDraftPool[0]); // Show first pick choices
+      } else {
+        // Move to next pick
+        const nextPick = currentPickNumber + 1;
+        setCurrentPickNumber(nextPick);
+        setCurrentChoices(sharedDraftPool[nextPick]);
+      }
+    } else if (gamePhase === 'redraft-p2') {
+      const newConsonants = [...player2Consonants, card];
+      setPlayer2Consonants(newConsonants);
+
+      if (newConsonants.length >= 5) {
+        setGamePhase('play');
+        setCurrentPlayer(1);
+      } else {
+        // Move to next pick
+        const nextPick = currentPickNumber + 1;
+        setCurrentPickNumber(nextPick);
+        setCurrentChoices(sharedDraftPool[nextPick]);
       }
     }
   };
 
   const handleRestart = () => {
-    setPlayer1Deck([]);
-    setPlayer2Deck([]);
-    setCurrentChoices(generateChoices());
+    setPlayer1Consonants([]);
+    setPlayer2Consonants([]);
+    // Generate new draft pool
+    const pool: LetterCard[][] = [];
+    for (let i = 0; i < 5; i++) {
+      pool.push(generateChoices());
+    }
+    setSharedDraftPool(pool);
+    setCurrentChoices(pool[0]);
+    setCurrentPickNumber(0);
     setGamePhase('draft-p1');
     setCurrentPlayer(1);
     setWordBar(Array(10).fill(null));
-    setUsedDeckIndices(new Set());
-    setWordBarToDeck(new Map());
+    setUsedConsonantIndices(new Set());
+    setUsedVowelIndices(new Set());
+    setWordBarToSource(new Map());
     setPlayer1Words([]);
     setPlayer2Words([]);
     setCurrentWord('');
-    setPlayer1HandIndices([]);
-    setPlayer2HandIndices([]);
     setPlayer1Health(30);
     setPlayer2Health(30);
   };
 
-  // Move card from deck to word bar
-  const moveDeckToWordBar = (deckIndex: number) => {
-    if (usedDeckIndices.has(deckIndex)) return;
+  // Move consonant card to word bar
+  const moveConsonantToWordBar = (consonantIndex: number) => {
+    if (usedConsonantIndices.has(consonantIndex)) return;
 
     const firstEmptyIndex = wordBar.findIndex(card => card === null);
     if (firstEmptyIndex === -1) return;
 
-    const currentDeck = currentPlayer === 1 ? player1Deck : player2Deck;
+    const currentConsonants = currentPlayer === 1 ? player1Consonants : player2Consonants;
     const newWordBar = [...wordBar];
-    newWordBar[firstEmptyIndex] = currentDeck[deckIndex];
+    newWordBar[firstEmptyIndex] = currentConsonants[consonantIndex];
     setWordBar(newWordBar);
 
-    setUsedDeckIndices(new Set([...usedDeckIndices, deckIndex]));
-    const newMapping = new Map(wordBarToDeck);
-    newMapping.set(firstEmptyIndex, deckIndex);
-    setWordBarToDeck(newMapping);
+    setUsedConsonantIndices(new Set([...usedConsonantIndices, consonantIndex]));
+    const newMapping = new Map(wordBarToSource);
+    newMapping.set(firstEmptyIndex, {type: 'consonant', index: consonantIndex});
+    setWordBarToSource(newMapping);
+  };
+
+  // Move vowel card to word bar
+  const moveVowelToWordBar = (vowelIndex: number) => {
+    if (usedVowelIndices.has(vowelIndex)) return;
+
+    const firstEmptyIndex = wordBar.findIndex(card => card === null);
+    if (firstEmptyIndex === -1) return;
+
+    const newWordBar = [...wordBar];
+    newWordBar[firstEmptyIndex] = vowelCards[vowelIndex];
+    setWordBar(newWordBar);
+
+    setUsedVowelIndices(new Set([...usedVowelIndices, vowelIndex]));
+    const newMapping = new Map(wordBarToSource);
+    newMapping.set(firstEmptyIndex, {type: 'vowel', index: vowelIndex});
+    setWordBarToSource(newMapping);
   };
 
   // Remove card from word bar
   const removeFromWordBar = (wordBarIndex: number) => {
     if (wordBar[wordBarIndex] === null) return;
 
-    const deckIndex = wordBarToDeck.get(wordBarIndex);
+    const source = wordBarToSource.get(wordBarIndex);
 
     const newWordBar = [...wordBar];
     newWordBar[wordBarIndex] = null;
     setWordBar(newWordBar);
 
-    if (deckIndex !== undefined) {
-      const newUsedIndices = new Set(usedDeckIndices);
-      newUsedIndices.delete(deckIndex);
-      setUsedDeckIndices(newUsedIndices);
+    if (source !== undefined) {
+      if (source.type === 'consonant') {
+        const newUsedIndices = new Set(usedConsonantIndices);
+        newUsedIndices.delete(source.index);
+        setUsedConsonantIndices(newUsedIndices);
+      } else {
+        const newUsedIndices = new Set(usedVowelIndices);
+        newUsedIndices.delete(source.index);
+        setUsedVowelIndices(newUsedIndices);
+      }
 
-      const newMapping = new Map(wordBarToDeck);
+      const newMapping = new Map(wordBarToSource);
       newMapping.delete(wordBarIndex);
-      setWordBarToDeck(newMapping);
+      setWordBarToSource(newMapping);
     }
   };
 
@@ -311,8 +393,9 @@ export default function InkpotsPage() {
 
       // Clear the word bar and reset
       setWordBar(Array(10).fill(null));
-      setUsedDeckIndices(new Set());
-      setWordBarToDeck(new Map());
+      setUsedConsonantIndices(new Set());
+      setUsedVowelIndices(new Set());
+      setWordBarToSource(new Map());
 
       // Check if both players have submitted a word for this round
       const bothPlayersReady = currentPlayer === 1
@@ -332,6 +415,21 @@ export default function InkpotsPage() {
         const damageToP2 = calculateCombat(p1LastWord, p2LastWord);
         const damageToP1 = calculateCombat(p2LastWord, p1LastWord);
 
+        // Set combat feedback for visual effects
+        setCombatFeedback({
+          damageToP1,
+          damageToP2,
+          healP1: p1LastWord.totalHeal,
+          healP2: p2LastWord.totalHeal,
+          shieldP1: p1LastWord.totalShield,
+          shieldP2: p2LastWord.totalShield,
+        });
+
+        // Clear combat feedback after animation
+        setTimeout(() => {
+          setCombatFeedback(null);
+        }, 2500);
+
         // Apply damage
         setPlayer2Health(prev => Math.max(0, prev - damageToP2));
         setPlayer1Health(prev => Math.max(0, prev - damageToP1));
@@ -339,15 +437,20 @@ export default function InkpotsPage() {
         // Apply healing after damage
         setPlayer1Health(prev => Math.min(30, prev + p1LastWord.totalHeal));
         setPlayer2Health(prev => Math.min(30, prev + p2LastWord.totalHeal));
-      }
 
-      // Switch to other player
-      setCurrentPlayer(currentPlayer === 1 ? 2 : 1);
+        // Show continue button after combat
+        setTimeout(() => {
+          setShowContinueButton(true);
+        }, 2500);
+      } else {
+        // Switch to other player if combat hasn't happened yet
+        setCurrentPlayer(currentPlayer === 1 ? 2 : 1);
+      }
     }
   };
 
   // Drag and drop handlers
-  const handleDragStart = (type: 'deck' | 'wordBar', index: number) => {
+  const handleDragStart = (type: 'consonant' | 'vowel' | 'wordBar', index: number) => {
     setDraggedFrom({ type, index });
   };
 
@@ -358,40 +461,76 @@ export default function InkpotsPage() {
   const handleDropOnWordBar = (targetIndex: number) => {
     if (!draggedFrom) return;
 
-    if (draggedFrom.type === 'deck') {
-      if (usedDeckIndices.has(draggedFrom.index)) return;
+    if (draggedFrom.type === 'consonant') {
+      if (usedConsonantIndices.has(draggedFrom.index)) return;
 
-      const currentDeck = currentPlayer === 1 ? player1Deck : player2Deck;
+      const currentConsonants = currentPlayer === 1 ? player1Consonants : player2Consonants;
       const newWordBar = [...wordBar];
-      const newUsedIndices = new Set(usedDeckIndices);
-      const newMapping = new Map(wordBarToDeck);
+      const newUsedConsonants = new Set(usedConsonantIndices);
+      const newUsedVowels = new Set(usedVowelIndices);
+      const newMapping = new Map(wordBarToSource);
 
       if (wordBar[targetIndex] !== null) {
-        const oldDeckIndex = wordBarToDeck.get(targetIndex);
-        if (oldDeckIndex !== undefined) {
-          newUsedIndices.delete(oldDeckIndex);
+        const oldSource = wordBarToSource.get(targetIndex);
+        if (oldSource) {
+          if (oldSource.type === 'consonant') {
+            newUsedConsonants.delete(oldSource.index);
+          } else {
+            newUsedVowels.delete(oldSource.index);
+          }
           newMapping.delete(targetIndex);
         }
       }
 
-      newWordBar[targetIndex] = currentDeck[draggedFrom.index];
-      newUsedIndices.add(draggedFrom.index);
-      newMapping.set(targetIndex, draggedFrom.index);
+      newWordBar[targetIndex] = currentConsonants[draggedFrom.index];
+      newUsedConsonants.add(draggedFrom.index);
+      newMapping.set(targetIndex, {type: 'consonant', index: draggedFrom.index});
 
       setWordBar(newWordBar);
-      setUsedDeckIndices(newUsedIndices);
-      setWordBarToDeck(newMapping);
+      setUsedConsonantIndices(newUsedConsonants);
+      setUsedVowelIndices(newUsedVowels);
+      setWordBarToSource(newMapping);
+    } else if (draggedFrom.type === 'vowel') {
+      if (usedVowelIndices.has(draggedFrom.index)) return;
+
+      const newWordBar = [...wordBar];
+      const newUsedConsonants = new Set(usedConsonantIndices);
+      const newUsedVowels = new Set(usedVowelIndices);
+      const newMapping = new Map(wordBarToSource);
+
+      if (wordBar[targetIndex] !== null) {
+        const oldSource = wordBarToSource.get(targetIndex);
+        if (oldSource) {
+          if (oldSource.type === 'consonant') {
+            newUsedConsonants.delete(oldSource.index);
+          } else {
+            newUsedVowels.delete(oldSource.index);
+          }
+          newMapping.delete(targetIndex);
+        }
+      }
+
+      newWordBar[targetIndex] = vowelCards[draggedFrom.index];
+      newUsedVowels.add(draggedFrom.index);
+      newMapping.set(targetIndex, {type: 'vowel', index: draggedFrom.index});
+
+      setWordBar(newWordBar);
+      setUsedConsonantIndices(newUsedConsonants);
+      setUsedVowelIndices(newUsedVowels);
+      setWordBarToSource(newMapping);
     }
 
     setDraggedFrom(null);
   };
 
-  // Get current deck and hand based on phase and player
-  const currentDeck = gamePhase === 'draft-p1' ? player1Deck : gamePhase === 'draft-p2' ? player2Deck : currentPlayer === 1 ? player1Deck : player2Deck;
-  const currentHandIndices = currentPlayer === 1 ? player1HandIndices : player2HandIndices;
+  // Get current consonants based on phase and player
+  const currentConsonants = (gamePhase === 'draft-p1' || gamePhase === 'redraft-p1')
+    ? player1Consonants
+    : (gamePhase === 'draft-p2' || gamePhase === 'redraft-p2')
+      ? player2Consonants
+      : currentPlayer === 1 ? player1Consonants : player2Consonants;
   const otherPlayer = currentPlayer === 1 ? 2 : 1;
-  const otherHandIndices = otherPlayer === 1 ? player1HandIndices : player2HandIndices;
-  const otherDeck = otherPlayer === 1 ? player1Deck : player2Deck;
+  const otherConsonants = otherPlayer === 1 ? player1Consonants : player2Consonants;
 
   // Calculate current attributes for display
   const currentAttributes = wordBar.filter(card => card !== null).length > 0
@@ -407,13 +546,25 @@ export default function InkpotsPage() {
 
         {gamePhase === 'draft-p1' && (
           <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
-            Player 1: Draft your deck ({player1Deck.length}/26)
+            Player 1: Draft your consonants ({player1Consonants.length}/5)
           </p>
         )}
 
         {gamePhase === 'draft-p2' && (
           <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
-            Player 2: Draft your deck ({player2Deck.length}/26)
+            Player 2: Draft your consonants ({player2Consonants.length}/5)
+          </p>
+        )}
+
+        {gamePhase === 'redraft-p1' && (
+          <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
+            Player 1: Re-draft your consonants ({player1Consonants.length}/5)
+          </p>
+        )}
+
+        {gamePhase === 'redraft-p2' && (
+          <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
+            Player 2: Re-draft your consonants ({player2Consonants.length}/5)
           </p>
         )}
 
@@ -424,10 +575,10 @@ export default function InkpotsPage() {
         )}
 
         {/* Draft Phase - Current Choices */}
-        {(gamePhase === 'draft-p1' || gamePhase === 'draft-p2') && (
+        {(gamePhase === 'draft-p1' || gamePhase === 'draft-p2' || gamePhase === 'redraft-p1' || gamePhase === 'redraft-p2') && (
           <div className="mb-8">
             <h2 className="text-xl font-semibold mb-4">Choose a card:</h2>
-            <div className="flex gap-4 justify-center">
+            <div className="flex gap-4 justify-center mb-4">
               {currentChoices.map((card, idx) => (
                 <button
                   key={idx}
@@ -445,43 +596,38 @@ export default function InkpotsPage() {
                 </button>
               ))}
             </div>
+            {currentConsonants.length === 5 && (
+              <button
+                onClick={() => {
+                  if (gamePhase === 'draft-p1') {
+                    setGamePhase('draft-p2');
+                    setCurrentChoices(generateChoices());
+                  } else if (gamePhase === 'draft-p2') {
+                    setGamePhase('play');
+                    setCurrentPlayer(1);
+                  } else if (gamePhase === 'redraft-p1') {
+                    setGamePhase('redraft-p2');
+                    setCurrentChoices(generateChoices());
+                  } else if (gamePhase === 'redraft-p2') {
+                    setGamePhase('play');
+                    setCurrentPlayer(1);
+                  }
+                }}
+                className="px-8 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 font-semibold text-lg"
+              >
+                Continue
+              </button>
+            )}
           </div>
         )}
 
         {/* Play Phase - Score Display and Word Bar */}
         {gamePhase === 'play' && (
           <>
-            {/* Other Player's Hand (displayed at top) */}
-            <div className="mb-8">
-              <h2 className="text-sm font-semibold mb-2 text-gray-500 dark:text-gray-400">
-                Player {otherPlayer}'s Hand
-              </h2>
-              <div className="flex gap-2 justify-center items-center">
-                {otherHandIndices.map((deckIdx, handIdx) => {
-                  const card = otherDeck[deckIdx];
-                  return (
-                    <div
-                      key={handIdx}
-                      className={`w-16 h-24 rounded-lg flex flex-col items-center justify-between p-2 ${getCardColor(card)}`}
-                    >
-                      <div className="text-[8px] font-bold uppercase text-gray-700 dark:text-gray-300">
-                        {card.cardType}
-                      </div>
-                      <span className="text-2xl font-bold text-gray-800 dark:text-gray-100">{card.letter}</span>
-                      <div className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                        {card.elementType && <div className="text-[7px] capitalize">{card.elementType}</div>}
-                        <div>{card.value}</div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Inkpot Soldiers - positioned between opposing player's hand and word area */}
-            <div className="mb-8 flex justify-center gap-24 items-end">
+            {/* Inkpot Soldiers - positioned at top */}
+            <div className="mb-8 flex justify-center gap-24 items-end relative">
               {/* Player 1 Soldier with Spell */}
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center relative">
                 {/* Player 1's Last Spell */}
                 <div className="text-center mb-2">
                   <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">
@@ -493,11 +639,14 @@ export default function InkpotsPage() {
                       : '???'}
                   </p>
                 </div>
-                <img
-                  src="/inkpots-art/inkpot-soldier.png"
-                  alt="Inkpot Soldier"
-                  className="h-96 w-auto object-contain"
-                />
+                <div className="relative">
+                  <img
+                    src="/inkpots-art/inkpot-soldier.png"
+                    alt="Inkpot Soldier"
+                    className="h-96 w-auto object-contain"
+                  />
+
+                </div>
                 {/* Player 1 Health Bar */}
                 <div className="w-48 mt-3">
                   <div className="flex justify-between text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
@@ -514,7 +663,7 @@ export default function InkpotsPage() {
               </div>
 
               {/* Player 2 Soldier with Spell */}
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center relative">
                 {/* Player 2's Last Spell */}
                 <div className="text-center mb-2">
                   <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">
@@ -526,12 +675,15 @@ export default function InkpotsPage() {
                       : '???'}
                   </p>
                 </div>
-                <img
-                  src="/inkpots-art/inkpot-soldier.png"
-                  alt="Inkpot Soldier"
-                  className="h-96 w-auto object-contain"
-                  style={{ transform: 'scaleX(-1)' }}
-                />
+                <div className="relative">
+                  <img
+                    src="/inkpots-art/inkpot-soldier.png"
+                    alt="Inkpot Soldier"
+                    className="h-96 w-auto object-contain"
+                    style={{ transform: 'scaleX(-1)' }}
+                  />
+
+                </div>
                 {/* Player 2 Health Bar */}
                 <div className="w-48 mt-3">
                   <div className="flex justify-between text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
@@ -590,15 +742,38 @@ export default function InkpotsPage() {
               )}
             </div>
 
-            {/* Submit Button */}
+            {/* Submit Button or Continue Button */}
             <div className="mb-6">
-              <button
-                onClick={submitWord}
-                disabled={!isValid || currentWord.length < 3}
-                className="px-8 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold text-lg"
-              >
-                Submit Word
-              </button>
+              {showContinueButton ? (
+                <button
+                  onClick={() => {
+                    // Clear consonants and start re-draft with new pool
+                    setPlayer1Consonants([]);
+                    setPlayer2Consonants([]);
+                    // Generate new draft pool for re-draft
+                    const pool: LetterCard[][] = [];
+                    for (let i = 0; i < 5; i++) {
+                      pool.push(generateChoices());
+                    }
+                    setSharedDraftPool(pool);
+                    setCurrentChoices(pool[0]);
+                    setCurrentPickNumber(0);
+                    setGamePhase('redraft-p1');
+                    setShowContinueButton(false);
+                  }}
+                  className="px-8 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-semibold text-lg"
+                >
+                  Continue to Re-Draft
+                </button>
+              ) : (
+                <button
+                  onClick={submitWord}
+                  disabled={!isValid || currentWord.length < 3}
+                  className="px-8 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold text-lg"
+                >
+                  Submit Word
+                </button>
+              )}
             </div>
 
 
@@ -644,18 +819,18 @@ export default function InkpotsPage() {
           </>
         )}
 
-        {/* Deck Display */}
+        {/* Consonants Display */}
         <div className="mb-8">
-          {(gamePhase === 'draft-p1' || gamePhase === 'draft-p2') && (
+          {(gamePhase === 'draft-p1' || gamePhase === 'draft-p2' || gamePhase === 'redraft-p1' || gamePhase === 'redraft-p2') && (
             <>
               <h2 className="text-xl font-semibold mb-4">
-                Your Deck ({currentDeck.length} cards)
+                Your Consonants ({currentConsonants.length} cards)
               </h2>
-              {currentDeck.length === 0 ? (
+              {currentConsonants.length === 0 ? (
                 <p className="text-gray-500 dark:text-gray-400 italic">No cards chosen yet</p>
               ) : (
                 <div className="flex flex-wrap gap-3 justify-center max-w-4xl mx-auto">
-                  {currentDeck.map((card, idx) => (
+                  {currentConsonants.map((card, idx) => (
                     <div
                       key={idx}
                       className={`w-20 h-28 rounded-lg flex flex-col items-center justify-between p-2 ${getCardColor(card)}`}
@@ -677,19 +852,19 @@ export default function InkpotsPage() {
 
           {gamePhase === 'play' && (
             <>
+              {/* Consonants */}
               <h2 className="text-lg font-semibold mb-3">
-                Player {currentPlayer}'s Hand (drag to word bar or click to add)
+                Consonants
               </h2>
-              <div className="flex gap-3 justify-center items-center">
-                {currentHandIndices.map((deckIdx, handIdx) => {
-                  const card = currentDeck[deckIdx];
-                  const isUsed = usedDeckIndices.has(deckIdx);
+              <div className="flex gap-3 justify-center items-center mb-6">
+                {currentConsonants.map((card, idx) => {
+                  const isUsed = usedConsonantIndices.has(idx);
                   return (
                     <div
-                      key={handIdx}
+                      key={idx}
                       draggable={!isUsed}
-                      onDragStart={() => handleDragStart('deck', deckIdx)}
-                      onClick={() => moveDeckToWordBar(deckIdx)}
+                      onDragStart={() => handleDragStart('consonant', idx)}
+                      onClick={() => moveConsonantToWordBar(idx)}
                       className={`w-20 h-28 rounded-lg flex flex-col items-center justify-between p-2 transition-all ${getCardColor(card)} ${
                         isUsed
                           ? 'opacity-50 cursor-not-allowed'
@@ -708,19 +883,46 @@ export default function InkpotsPage() {
                   );
                 })}
               </div>
+
+              {/* Vowels */}
+              <h2 className="text-lg font-semibold mb-3">
+                Vowels
+              </h2>
+              <div className="flex gap-3 justify-center items-center">
+                {vowelCards.map((card, idx) => {
+                  const isUsed = usedVowelIndices.has(idx);
+                  return (
+                    <div
+                      key={idx}
+                      draggable={!isUsed}
+                      onDragStart={() => handleDragStart('vowel', idx)}
+                      onClick={() => moveVowelToWordBar(idx)}
+                      className={`w-20 h-28 rounded-lg flex items-center justify-center p-2 transition-all ${getCardColor(card, true)} ${
+                        isUsed
+                          ? 'opacity-50 cursor-not-allowed'
+                          : 'cursor-move hover:shadow-xl hover:scale-105 touch-none'
+                      }`}
+                    >
+                      <span className="text-4xl font-bold text-gray-800 dark:text-gray-100">{card.letter}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </>
           )}
         </div>
 
         {/* Controls */}
-        <div className="flex gap-4 justify-center">
-          <button
-            onClick={handleRestart}
-            className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 font-semibold"
-          >
-            {gamePhase === 'play' ? 'New Game' : 'Restart Draft'}
-          </button>
-        </div>
+        {gamePhase === 'play' && (
+          <div className="flex gap-4 justify-center">
+            <button
+              onClick={handleRestart}
+              className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 font-semibold"
+            >
+              New Game
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

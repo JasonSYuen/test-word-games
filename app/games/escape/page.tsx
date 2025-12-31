@@ -347,11 +347,10 @@ export default function EscapePage() {
                   }
                 }}
                 disabled={claimedTilesCount < 30}
-                className={`w-full py-3 rounded-lg font-bold text-lg transition-all ${
-                  claimedTilesCount >= 30
-                    ? 'bg-green-500 hover:bg-green-600 text-white cursor-pointer shadow-lg'
-                    : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'
-                }`}
+                className={`w-full py-3 rounded-lg font-bold text-lg transition-all ${claimedTilesCount >= 30
+                  ? 'bg-green-500 hover:bg-green-600 text-white cursor-pointer shadow-lg'
+                  : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'
+                  }`}
               >
                 ESCAPE
               </button>
@@ -360,210 +359,210 @@ export default function EscapePage() {
 
           {/* Hex Grid */}
           <div className="flex justify-center items-center">
-          <svg
-            width="800"
-            height="800"
-            viewBox="-250 -250 500 500"
-            className="max-w-full select-none"
-          >
-            {/* Define glow filter for claimed tiles */}
-            <defs>
-              <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                <feMerge>
-                  <feMergeNode in="coloredBlur"/>
-                  <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-              </filter>
-            </defs>
+            <svg
+              width="800"
+              height="800"
+              viewBox="-250 -250 500 500"
+              className="max-w-full select-none"
+            >
+              {/* Define glow filter for claimed tiles */}
+              <defs>
+                <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                  <feMerge>
+                    <feMergeNode in="coloredBlur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
 
-            {/* Render all hexagons first */}
-            {hexGrid.map((hex, idx) => {
-              const { x, y } = axialToPixel(hex.q, hex.r, hexSize);
+              {/* Render all hexagons first */}
+              {hexGrid.map((hex, idx) => {
+                const { x, y } = axialToPixel(hex.q, hex.r, hexSize);
 
-              // Create hexagon path
-              const points = [];
-              for (let i = 0; i < 6; i++) {
-                const angle = (Math.PI / 180) * (60 * i - 30);
-                const px = x + hexSize * Math.cos(angle);
-                const py = y + hexSize * Math.sin(angle);
-                points.push(`${px},${py}`);
-              }
+                // Create hexagon path
+                const points = [];
+                for (let i = 0; i < 6; i++) {
+                  const angle = (Math.PI / 180) * (60 * i - 30);
+                  const px = x + hexSize * Math.cos(angle);
+                  const py = y + hexSize * Math.sin(angle);
+                  points.push(`${px},${py}`);
+                }
 
-              return (
-                <polygon
-                  key={idx}
-                  points={points.join(' ')}
-                  fill={getColor(hex.color, hex.claimed)}
-                  stroke="#1f2937"
-                  strokeWidth="2"
-                  className="hover:opacity-80 transition-all cursor-pointer"
-                  onClick={() => handleHexClick(idx)}
-                  filter={hex.claimed ? 'url(#glow)' : 'none'}
-                />
-              );
-            })}
-
-            {/* Render white outlines for claimed tiles on top */}
-            {hexGrid.map((hex, idx) => {
-              if (!hex.claimed) return null;
-
-              const { x, y } = axialToPixel(hex.q, hex.r, hexSize);
-
-              // Create hexagon path
-              const points = [];
-              for (let i = 0; i < 6; i++) {
-                const angle = (Math.PI / 180) * (60 * i - 30);
-                const px = x + hexSize * Math.cos(angle);
-                const py = y + hexSize * Math.sin(angle);
-                points.push(`${px},${py}`);
-              }
-
-              return (
-                <polygon
-                  key={`outline-${idx}`}
-                  points={points.join(' ')}
-                  fill="none"
-                  stroke="#ffffff"
-                  strokeWidth="6"
-                  opacity="0.8"
-                  pointerEvents="none"
-                />
-              );
-            })}
-
-            {/* Render player robot */}
-            {playerPosition && (() => {
-              const { x, y } = axialToPixel(playerPosition.q, playerPosition.r, hexSize);
-              const robotSize = 24;
-
-              return (
-                <g key="player" className="transition-all duration-300">
-                  {/* Shadow */}
-                  <ellipse
-                    cx={x}
-                    cy={y + robotSize / 2 + 2}
-                    rx="12"
-                    ry="4"
-                    fill="#000000"
-                    opacity="0.3"
+                return (
+                  <polygon
+                    key={idx}
+                    points={points.join(' ')}
+                    fill={getColor(hex.color, hex.claimed)}
+                    stroke="#1f2937"
+                    strokeWidth="2"
+                    className="hover:opacity-80 transition-all cursor-pointer"
+                    onClick={() => handleHexClick(idx)}
+                    filter={hex.claimed ? 'url(#glow)' : 'none'}
                   />
+                );
+              })}
 
-                  {/* Robot body */}
-                  <rect
-                    x={x - 8}
-                    y={y - 4}
-                    width={16}
-                    height={14}
-                    fill="#e0e0e0"
-                    stroke="#333333"
-                    strokeWidth="1.5"
-                    rx="2"
-                  />
+              {/* Render white outlines for claimed tiles on top */}
+              {hexGrid.map((hex, idx) => {
+                if (!hex.claimed) return null;
 
-                  {/* Robot head */}
-                  <rect
-                    x={x - 6}
-                    y={y - 12}
-                    width={12}
-                    height={10}
-                    fill="#ffffff"
-                    stroke="#333333"
-                    strokeWidth="1.5"
-                    rx="2"
-                  />
+                const { x, y } = axialToPixel(hex.q, hex.r, hexSize);
 
-                  {/* Antenna */}
-                  <line
-                    x1={x}
-                    y1={y - 12}
-                    x2={x}
-                    y2={y - 16}
-                    stroke="#333333"
-                    strokeWidth="1.5"
-                  />
-                  <circle
-                    cx={x}
-                    cy={y - 16}
-                    r="2"
-                    fill="#ef4444"
-                  />
+                // Create hexagon path
+                const points = [];
+                for (let i = 0; i < 6; i++) {
+                  const angle = (Math.PI / 180) * (60 * i - 30);
+                  const px = x + hexSize * Math.cos(angle);
+                  const py = y + hexSize * Math.sin(angle);
+                  points.push(`${px},${py}`);
+                }
 
-                  {/* Eyes */}
-                  <circle
-                    cx={x - 2.5}
-                    cy={y - 8}
-                    r="1.5"
-                    fill="#3b82f6"
+                return (
+                  <polygon
+                    key={`outline-${idx}`}
+                    points={points.join(' ')}
+                    fill="none"
+                    stroke="#ffffff"
+                    strokeWidth="6"
+                    opacity="0.8"
+                    pointerEvents="none"
                   />
-                  <circle
-                    cx={x + 2.5}
-                    cy={y - 8}
-                    r="1.5"
-                    fill="#3b82f6"
-                  />
+                );
+              })}
 
-                  {/* Mouth/display */}
-                  <rect
-                    x={x - 3}
-                    y={y - 4}
-                    width={6}
-                    height={2}
-                    fill="#333333"
-                    rx="1"
-                  />
+              {/* Render player robot */}
+              {playerPosition && (() => {
+                const { x, y } = axialToPixel(playerPosition.q, playerPosition.r, hexSize);
+                const robotSize = 24;
 
-                  {/* Left arm */}
-                  <rect
-                    x={x - 11}
-                    y={y - 2}
-                    width={3}
-                    height={8}
-                    fill="#b0b0b0"
-                    stroke="#333333"
-                    strokeWidth="1"
-                    rx="1"
-                  />
+                return (
+                  <g key="player" className="transition-all duration-300">
+                    {/* Shadow */}
+                    <ellipse
+                      cx={x}
+                      cy={y + robotSize / 2 + 2}
+                      rx="12"
+                      ry="4"
+                      fill="#000000"
+                      opacity="0.3"
+                    />
 
-                  {/* Right arm */}
-                  <rect
-                    x={x + 8}
-                    y={y - 2}
-                    width={3}
-                    height={8}
-                    fill="#b0b0b0"
-                    stroke="#333333"
-                    strokeWidth="1"
-                    rx="1"
-                  />
+                    {/* Robot body */}
+                    <rect
+                      x={x - 8}
+                      y={y - 4}
+                      width={16}
+                      height={14}
+                      fill="#e0e0e0"
+                      stroke="#333333"
+                      strokeWidth="1.5"
+                      rx="2"
+                    />
 
-                  {/* Left leg */}
-                  <rect
-                    x={x - 5}
-                    y={y + 10}
-                    width={3}
-                    height={6}
-                    fill="#808080"
-                    stroke="#333333"
-                    strokeWidth="1"
-                    rx="1"
-                  />
+                    {/* Robot head */}
+                    <rect
+                      x={x - 6}
+                      y={y - 12}
+                      width={12}
+                      height={10}
+                      fill="#ffffff"
+                      stroke="#333333"
+                      strokeWidth="1.5"
+                      rx="2"
+                    />
 
-                  {/* Right leg */}
-                  <rect
-                    x={x + 2}
-                    y={y + 10}
-                    width={3}
-                    height={6}
-                    fill="#808080"
-                    stroke="#333333"
-                    strokeWidth="1"
-                    rx="1"
-                  />
-                </g>
-              );
-            })()}
-          </svg>
+                    {/* Antenna */}
+                    <line
+                      x1={x}
+                      y1={y - 12}
+                      x2={x}
+                      y2={y - 16}
+                      stroke="#333333"
+                      strokeWidth="1.5"
+                    />
+                    <circle
+                      cx={x}
+                      cy={y - 16}
+                      r="2"
+                      fill="#ef4444"
+                    />
+
+                    {/* Eyes */}
+                    <circle
+                      cx={x - 2.5}
+                      cy={y - 8}
+                      r="1.5"
+                      fill="#3b82f6"
+                    />
+                    <circle
+                      cx={x + 2.5}
+                      cy={y - 8}
+                      r="1.5"
+                      fill="#3b82f6"
+                    />
+
+                    {/* Mouth/display */}
+                    <rect
+                      x={x - 3}
+                      y={y - 4}
+                      width={6}
+                      height={2}
+                      fill="#333333"
+                      rx="1"
+                    />
+
+                    {/* Left arm */}
+                    <rect
+                      x={x - 11}
+                      y={y - 2}
+                      width={3}
+                      height={8}
+                      fill="#b0b0b0"
+                      stroke="#333333"
+                      strokeWidth="1"
+                      rx="1"
+                    />
+
+                    {/* Right arm */}
+                    <rect
+                      x={x + 8}
+                      y={y - 2}
+                      width={3}
+                      height={8}
+                      fill="#b0b0b0"
+                      stroke="#333333"
+                      strokeWidth="1"
+                      rx="1"
+                    />
+
+                    {/* Left leg */}
+                    <rect
+                      x={x - 5}
+                      y={y + 10}
+                      width={3}
+                      height={6}
+                      fill="#808080"
+                      stroke="#333333"
+                      strokeWidth="1"
+                      rx="1"
+                    />
+
+                    {/* Right leg */}
+                    <rect
+                      x={x + 2}
+                      y={y + 10}
+                      width={3}
+                      height={6}
+                      fill="#808080"
+                      stroke="#333333"
+                      strokeWidth="1"
+                      rx="1"
+                    />
+                  </g>
+                );
+              })()}
+            </svg>
           </div>
         </div>
 
